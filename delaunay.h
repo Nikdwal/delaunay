@@ -4,6 +4,7 @@
 #include "vector2.h"
 #include "edge.h"
 #include "triangle.h"
+#include "Vertex.h"
 
 #include <vector>
 #include <algorithm>
@@ -14,12 +15,13 @@ class Delaunay
 	public:
 		using TriangleType = Triangle<T>;
 		using EdgeType = Edge<T>;
-		using VertexType = Vector2<T>;
+		using InputType = Vector2<T>;
+		using VertexType = Vertex<T>;
 		
-		const std::vector<TriangleType>& triangulate(std::vector<VertexType> &vertices)
+		const std::vector<TriangleType>& triangulate(std::vector<InputType> &vertices)
 		{
 			// Store the vertices localy
-			_vertices = vertices;
+			//_vertices = vertices;
 
 			// Determinate the super triangle
 			float minX = vertices[0].x;
@@ -43,7 +45,7 @@ class Delaunay
 
 			VertexType p1(midx - 20 * deltaMax, midy - deltaMax);
 			VertexType p2(midx, midy + 20 * deltaMax);
-			VertexType p3(midx + 20 * deltaMax, midy - deltaMax);	
+			VertexType p3(midx + 20 * deltaMax, midy - deltaMax);
 
 			//std::cout << "Super triangle " << std::endl << Triangle(p1, p2, p3) << std::endl;
 			
@@ -56,12 +58,14 @@ class Delaunay
 				//std::cout << "_triangles contains " << _triangles.size() << " elements" << std::endl;	
 
 				std::vector<EdgeType> polygon;
+				VertexType v(*p);
 
+				// TODO: maak dit efficienter met een wandeling
 				for(auto t = begin(_triangles); t != end(_triangles); t++)
 				{
 					//std::cout << "Processing " << std::endl << *t << std::endl;
 
-					if(t->circumCircleContains(*p))
+					if(t->circumCircleContains(v))
 					{
 						//std::cout << "Pushing bad triangle " << *t << std::endl;
 						t->isBad = true;
@@ -76,6 +80,7 @@ class Delaunay
 				}
 
 				_triangles.erase(std::remove_if(begin(_triangles), end(_triangles), [](TriangleType &t){
+					// TODO verwijder vertices uit de adjacency list van elk vormend punt
 					return t.isBad;
 				}), end(_triangles));
 
@@ -99,11 +104,13 @@ class Delaunay
 				}), end(polygon));
 
 				for(auto e = begin(polygon); e != end(polygon); e++)
-					_triangles.push_back(TriangleType(e->p1, e->p2, *p));
+					// TODO: voeg nieuwe punten toe aan de adjacency lists van v, p1 en p2
+					_triangles.push_back(TriangleType(e->p1, e->p2, v));
 			
 			}
 
 			_triangles.erase(std::remove_if(begin(_triangles), end(_triangles), [p1, p2, p3](TriangleType &t){
+				// TODO verwijder vertices uit de adjacency list van elk vormend punt
 				return t.containsVertex(p1) || t.containsVertex(p2) || t.containsVertex(p3);
 			}), end(_triangles));
 
@@ -119,12 +126,12 @@ class Delaunay
 		
 		const std::vector<TriangleType>& getTriangles() const { return _triangles; };
 		const std::vector<EdgeType>& getEdges() const { return _edges; };
-		const std::vector<VertexType>& getVertices() const { return _vertices; };
+		const std::vector<InputType>& getVertices() const { return _vertices; };
 
 	private:
 		std::vector<TriangleType> _triangles;
 		std::vector<EdgeType> _edges;
-		std::vector<VertexType> _vertices;
+		std::vector<InputType> _vertices;
 };
 
 #endif

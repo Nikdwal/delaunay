@@ -5,3 +5,6 @@ build/
 peda-session-delaunay.txt
 *.lua
 .gdb_history
+.cproject
+.project
+.settings

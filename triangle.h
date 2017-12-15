@@ -1,7 +1,7 @@
 #ifndef H_TRIANGLE
 #define H_TRIANGLE
 
-#include "vector2.h"
+#include "Vertex.h"
 #include "edge.h"
 
 #include <assert.h>
@@ -12,7 +12,7 @@ class Triangle
 {
 	public:
 		using EdgeType = Edge<T>;
-		using VertexType = Vector2<T>;
+		using VertexType = Vertex<T>;
 		
 		Triangle(const VertexType &_p1, const VertexType &_p2, const VertexType &_p3)
 		:	p1(_p1), p2(_p2), p3(_p3),
@@ -24,6 +24,7 @@ class Triangle
 			return p1 == v || p2 == v || p3 == v; 
 		}
 		
+		// TODO: werk gewoon met de gekwadrateerde straal in plaats van de straal zelf
 		bool circumCircleContains(const VertexType &v)
 		{
 			float ab = (p1.x * p1.x) + (p1.y * p1.y);
@@ -38,9 +39,12 @@ class Triangle
 			return dist <= circum_radius;
 		}
 	
+		// standaard BW gegevensstructuren
 		VertexType p1;
 		VertexType p2;
 		VertexType p3;
+		Triangle* neighboringTriangles[3];
+
 		EdgeType e1;				
 		EdgeType e2;
 		EdgeType e3;
