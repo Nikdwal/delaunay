@@ -5,6 +5,7 @@
 #include <math.h>
 #include <stdlib.h>  
 #include <array>
+#include <chrono>
 
 #include <SFML/Graphics.hpp>
 
@@ -12,6 +13,10 @@
 #include "triangle.h"
 #include "delaunay.h"
 
+/*
+* Genereert random getal tussen meegegeven waarden a en b 
+* (Gaat er van uit dat a < b!)
+*/
 float RandomFloat(float a, float b) {
     float random = ((float) rand()) / (float) RAND_MAX;
     float diff = b - a;
@@ -21,18 +26,29 @@ float RandomFloat(float a, float b) {
 
 int main()
 {
+    //srand is PSEUD-RNG, moet als argument een bepaald getal meekrijgen (zelfde getal zal altijd zelfde 'random' getallen genereren 
+    //--> door argument TIME(NULL) mee te geven wordt verzekerd dat het telkens andere getallen zijn)
 	srand (time(NULL));
-	float numberPoints = roundf(RandomFloat(4, 40));
+	
+    float numberPoints = 100;
+    //float numberPoints = roundf(RandomFloat(4, 40));
 
 	std::cout << "Generating " << numberPoints << " random points" << std::endl;
 
-	std::vector<Vector2<float>> points;
+    /*
+    * Genereer de punten
+    */
+	std::vector<Vector2<float>> points; //std::vector is een dynamische lijst
 	for(int i = 0; i < numberPoints; i++) {
-		points.push_back(Vector2<float>(RandomFloat(0, 800), RandomFloat(0, 600)));
+		points.push_back(Vector2<float>(RandomFloat(0, 800), RandomFloat(0, 600))); //push_back voegt punt toe aan einde lijst
 	}
 
 	Delaunay<float> triangulation;
+
+    auto t1 = std::chrono::high_resolution_clock::now();
 	std::vector<Triangle<float>> triangles = triangulation.triangulate(points);
+    auto t2 = std::chrono::high_resolution_clock::now();
+
 	std::cout << triangles.size() << " triangles generated\n";
 	std::vector<Edge<float>> edges = triangulation.getEdges();
 	
@@ -49,7 +65,11 @@ int main()
 	std::cout << "\nEdges : " << edges.size() << std::endl;
 	for(auto &e : edges)
 		std::cout << e << std::endl;
-			
+
+    auto int_ms = std::chrono::duration_cast<std::chrono::milliseconds>(t2 - t1);
+
+    std::cout << int_ms.count() << "ms" << std::endl;
+
 	// SFML window
     	sf::RenderWindow window(sf::VideoMode(800, 600), "Delaunay triangulation");
 

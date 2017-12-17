@@ -24,7 +24,7 @@ class Delaunay
 			//_vertices = vertices;
 
 			// Determinate the super triangle
-			float minX = vertices[0].x;
+            float minX = vertices[0].x;
 			float minY = vertices[0].y;
 			float maxX = minX;
 			float maxY = minY;
@@ -43,6 +43,7 @@ class Delaunay
 			float midx = (minX + maxX) / 2.f;
 			float midy = (minY + maxY) / 2.f;
 
+            //construct 3 edges of supertriangle
 			VertexType p1(midx - 20 * deltaMax, midy - deltaMax);
 			VertexType p2(midx, midy + 20 * deltaMax);
 			VertexType p3(midx + 20 * deltaMax, midy - deltaMax);
