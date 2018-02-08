@@ -53,14 +53,18 @@ class Delaunay
 			// Create a list of triangles, and add the supertriangle in it
 			_triangles.push_back(TriangleType(p1, p2, p3));
 
+            //!! p is een reference!!
 			for(auto p = begin(vertices); p != end(vertices); p++)
 			{
 				//std::cout << "Traitement du point " << *p << std::endl;
 				//std::cout << "_triangles contains " << _triangles.size() << " elements" << std::endl;	
 
 				std::vector<EdgeType> polygon;
-				VertexType v(*p);
 
+                //*p returns the value that is pointed to by pointer p because vertices = &vertices is a list of references to points!
+                //p points to a vertex that has an x and a y coordinate
+				VertexType v(*p);
+                
 				// TODO: maak dit efficienter met een wandeling
 				for(auto t = begin(_triangles); t != end(_triangles); t++)
 				{
@@ -69,6 +73,7 @@ class Delaunay
 					if(t->circumCircleContains(v))
 					{
 						//std::cout << "Pushing bad triangle " << *t << std::endl;
+                        //if circumcircle of triangle t contains v then t is a bad triangle (i.e. a triangle that should be adjusted/removed.
 						t->isBad = true;
 						polygon.push_back(t->e1);	
 						polygon.push_back(t->e2);	
@@ -76,7 +81,7 @@ class Delaunay
 					}
 					else
 					{
-						//std::cout << " does not contains " << *p << " in his circum center" << std::endl;
+						//std::cout << " does not contain " << *p << " in his circum center" << std::endl;
 					}
 				}
 

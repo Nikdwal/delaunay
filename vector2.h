@@ -8,6 +8,9 @@ template <typename T>
 class Vector2
 {
 	public:
+        T x;
+        T y;
+
 		//
 		// Constructors
 		//
@@ -18,10 +21,10 @@ class Vector2
 			y = 0;
 		}
 
-		Vector2(T _x, T _y) 
+		Vector2(T xp, T yp) 
 		{
-			x = _x;
-			y = _y;
+			x = xp;
+			y = yp;
 		}
 
 		Vector2(const Vector2 &v)
@@ -39,6 +42,7 @@ class Vector2
 		//
 		// Operations
 		//	
+        //distance from this vector to the given vector
 		T dist2(const Vector2 &v)
 		{
 			T dx = x - v.x;
@@ -50,10 +54,6 @@ class Vector2
 		{
 			return sqrtf(dist2(v));
 		}
-
-		T x;
-		T y;
-
 };
 
 template<typename T>

@@ -10,6 +10,8 @@
 
 #include <list>
 #include "vector2.h"
+//#include "edge.h"
+//#include "triangle.h"
 
 using namespace std;
 
@@ -18,37 +20,90 @@ template <typename T>
 class Vertex {
 public:
 
-	using PointType = Vector2<T>;
+    using PointType = Vector2<T>;
+    //using TriangleType = Triangle<T>;
+    //using EdgeType = Edge<T>;
 
-	Vertex(T _x, T _y){
-		x = _x;
-		y = _y;
-		//neighbors = new list();
-	}
+    Vertex(T _x, T _y) {
+        x = _x;
+        y = _y;
+        //neighbors = new list();
+    }
 
-	Vertex(const PointType &p){
-		x = p.x;
-		y = p.y;
-		//neighbors = new list();
-	}
+    Vertex(const PointType &p) {
+        x = p.x;
+        y = p.y;
+        //neighbors = new list();
+    }
 
-	T distsq(const Vertex<T> &v){
-		T dx = x - v.x;
-		T dy = y - v.y;
-		return dx * dx + dy * dy;
-	}
+    T distsq(const Vertex<T> &v) {
+        T dx = x - v.x;
+        T dy = y - v.y;
+        return dx * dx + dy * dy;
+    }
 
-	T distsq(const PointType &p){
-		T dx = x - p.x;
-		T dy = y - p.y;
-		return dx * dx + dy * dy;
-	}
+    T distsq(const PointType &p) {
+        T dx = x - p.x;
+        T dy = y - p.y;
+        return dx * dx + dy * dy;
+    }
+
+    //@RETURN   geeft ofwel de edge terug waarop p ligt , ofwel de edge die de driehoek waarin p ligt aan zijn linkerkant heeft liggen
+    /*EdgeType getClosestEdge(const Vertex<T> p, const std::vector<TriangleType> triangleList) {
+        TriangleType t = begin(triangleList);
+        EdgeType e = t.getEdge();
+
+        bool flag = true;
+        while (flag) {
+            if (p == e.getOrigin() || p == e.getDestination()) {
+                flag = false;
+                return e;
+            }
+            else if (RightOf(p, e)) {
+                e = e.getSym();
+            }
+            else if (!RightOf(p, e.getOrgNext(t))) {
+                e = e.getOrgNext(t);
+            }
+            else if (!RightOf(p, e.getDestPrev(t))) {
+                e = e.getDestPrev(t);
+            }
+            else {
+                flag = false;
+                return e;
+            }
+        }
+    }*/
+
+    /*Vertex getNearest(const Vertex<T> p, const TriangleType t) {
+        T d1 = p.distsq(t.p1);
+        T d2 = p.distsq(t.p2);
+        T d3 = p.distsq(t.p3);
+        T least = std::min({ d1, d2, d3 });
+        if (least == d1) {
+            return t.p1;
+        }
+        else if (least == d2) {
+            return t.p2;
+        }
+        else {
+            return t.p3
+        }
+    }*/
+
+   /* Vertex walkNN(const Vertex<T> p, const std::vector<TriangleType> triangleList) {
+
+        EdgeType closestEdge = getClosestEdge(p, triangleList);
+        TriangleType t = closestEdge.getLeftTriangle();             //TODO: implementeer getLeftTriangle()
+        Vertex nearest = getNearest(p, t);
+
+        return nearest;
+    }*/
 
 	// standaard GS/BW walk naar de dichtste buur van p in de triangulatie
-	Vertex *walkNN(const PointType p){
-		Vertex *current = this;
-		Vertex *closest;
-		T dmin, d;
+	Vertex walkNN(const Vertex<T> p){
+       
+        T dmin, d;
 		while(closest == NULL){
 			closest = NULL;
 			for (Vertex *neighbor : current->neighbors){

@@ -14,6 +14,10 @@
 #include "delaunay.h"
 
 /*
+* !! X-AS STAAT VERTICAAL EN Y-AS STAAT HORIZONTAAL !!
+*/
+
+/*
 * Genereert random getal tussen meegegeven waarden a en b 
 * (Gaat er van uit dat a < b!)
 */
@@ -30,7 +34,7 @@ int main()
     //--> door argument TIME(NULL) mee te geven wordt verzekerd dat het telkens andere getallen zijn)
 	srand (time(NULL));
 	
-    float numberPoints = 100;
+    float numberPoints = 5;
     //float numberPoints = roundf(RandomFloat(4, 40));
 
 	std::cout << "Generating " << numberPoints << " random points" << std::endl;
@@ -39,9 +43,17 @@ int main()
     * Genereer de punten
     */
 	std::vector<Vector2<float>> points; //std::vector is een dynamische lijst
-	for(int i = 0; i < numberPoints; i++) {
-		points.push_back(Vector2<float>(RandomFloat(0, 800), RandomFloat(0, 600))); //push_back voegt punt toe aan einde lijst
-	}
+	
+    //for(int i = 0; i < numberPoints; i++) {
+	//	points.push_back(Vector2<float>(RandomFloat(0, 800), RandomFloat(0, 600))); //push_back voegt punt toe aan einde lijst
+	//}
+    
+    points.push_back(Vector2<float>(100.0, 200.0));
+    points.push_back(Vector2<float>(200.0, 400.0));
+    points.push_back(Vector2<float>(300.0, 100.0));
+    points.push_back(Vector2<float>(400.0, 500.0));
+    points.push_back(Vector2<float>(500.0, 300.0));
+
 
 	Delaunay<float> triangulation;
 
@@ -68,7 +80,7 @@ int main()
 
     auto int_ms = std::chrono::duration_cast<std::chrono::milliseconds>(t2 - t1);
 
-    std::cout << int_ms.count() << "ms" << std::endl;
+    std::cout << "Triangulation took " << int_ms.count() << "ms" << std::endl;
 
 	// SFML window
     	sf::RenderWindow window(sf::VideoMode(800, 600), "Delaunay triangulation");

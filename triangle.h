@@ -24,6 +24,10 @@ class Triangle
 			return p1 == v || p2 == v || p3 == v; 
 		}
 		
+        //EdgeType getEdge() {
+        //    return e1;
+        //}
+
 		// TODO: werk gewoon met de gekwadrateerde straal in plaats van de straal zelf
 		bool circumCircleContains(const VertexType &v)
 		{
