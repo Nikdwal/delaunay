@@ -7,29 +7,26 @@
 #include <assert.h>
 #include <math.h>
 
-template <class T>
 class Triangle
 {
 	public:
-		using EdgeType = Edge<T>;
-		using VertexType = Vertex<T>;
-		
-		Triangle(const VertexType &_p1, const VertexType &_p2, const VertexType &_p3)
+			
+		Triangle(const Vertex &_p1, const Vertex &_p2, const Vertex &_p3)
 		:	p1(_p1), p2(_p2), p3(_p3),
 			e1(_p1, _p2), e2(_p2, _p3), e3(_p3, _p1), isBad(false)
 		{}
 	
-		bool containsVertex(const VertexType &v)
+		bool containsVertex(const Vertex &v)
 		{
 			return p1 == v || p2 == v || p3 == v; 
 		}
 		
-        //EdgeType getEdge() {
-        //    return e1;
-        //}
+        Edge *getEdge() {
+            return &e1;
+        }
 
 		// TODO: werk gewoon met de gekwadrateerde straal in plaats van de straal zelf
-		bool circumCircleContains(const VertexType &v)
+		bool circumCircleContains(const Vertex &v)
 		{
 			float ab = (p1.x * p1.x) + (p1.y * p1.y);
 			float cd = (p2.x * p2.x) + (p2.y * p2.y);
@@ -44,26 +41,24 @@ class Triangle
 		}
 	
 		// standaard BW gegevensstructuren
-		VertexType p1;
-		VertexType p2;
-		VertexType p3;
+		Vertex p1;
+		Vertex p2;
+		Vertex p3;
 		Triangle* neighboringTriangles[3];
 
-		EdgeType e1;				
-		EdgeType e2;
-		EdgeType e3;
+		Edge e1;				
+		Edge e2;
+		Edge e3;
 		bool isBad;
 };
 
-template <class T>
-inline std::ostream &operator << (std::ostream &str, const Triangle<T> & t)
+inline std::ostream &operator << (std::ostream &str, const Triangle &t)
 {
 	return str << "Triangle:" << std::endl << "\t" << t.p1 << std::endl << "\t" << t.p2 << std::endl << "\t" << t.p3 << std::endl << "\t" << t.e1 << std::endl << "\t" << t.e2 << std::endl << "\t" << t.e3 << std::endl;
 		
 }
 
-template <class T>
-inline bool operator == (const Triangle<T> &t1, const Triangle<T> &t2)
+inline bool operator == (const Triangle &t1, const Triangle &t2)
 {
 	return	(t1.p1 == t2.p1 || t1.p1 == t2.p2 || t1.p1 == t2.p3) &&
 			(t1.p2 == t2.p1 || t1.p2 == t2.p2 || t1.p2 == t2.p3) && 

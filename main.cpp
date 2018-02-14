@@ -12,6 +12,7 @@
 #include "vector2.h"
 #include "triangle.h"
 #include "delaunay.h"
+#include "Vertex.h"
 
 /*
 * !! X-AS STAAT VERTICAAL EN Y-AS STAAT HORIZONTAAL !!
@@ -42,27 +43,27 @@ int main()
     /*
     * Genereer de punten
     */
-	std::vector<Vector2<float>> points; //std::vector is een dynamische lijst
+	std::vector<Vertex> points; //std::vector is een dynamische lijst
 	
     //for(int i = 0; i < numberPoints; i++) {
-	//	points.push_back(Vector2<float>(RandomFloat(0, 800), RandomFloat(0, 600))); //push_back voegt punt toe aan einde lijst
+	//	points.push_back(Vertex(RandomFloat(0, 800), RandomFloat(0, 600))); //push_back voegt punt toe aan einde lijst
 	//}
     
-    points.push_back(Vector2<float>(100.0, 200.0));
-    points.push_back(Vector2<float>(200.0, 400.0));
-    points.push_back(Vector2<float>(300.0, 100.0));
-    points.push_back(Vector2<float>(400.0, 500.0));
-    points.push_back(Vector2<float>(500.0, 300.0));
+    points.push_back(Vertex(100.0, 200.0));
+    points.push_back(Vertex(200.0, 400.0));
+    points.push_back(Vertex(300.0, 100.0));
+    points.push_back(Vertex(400.0, 500.0));
+    points.push_back(Vertex(500.0, 300.0));
 
 
-	Delaunay<float> triangulation;
+	Delaunay triangulation;
 
     auto t1 = std::chrono::high_resolution_clock::now();
-	std::vector<Triangle<float>> triangles = triangulation.triangulate(points);
+	std::vector<Triangle> triangles = triangulation.triangulate(points);
     auto t2 = std::chrono::high_resolution_clock::now();
 
 	std::cout << triangles.size() << " triangles generated\n";
-	std::vector<Edge<float>> edges = triangulation.getEdges();
+	std::vector<Edge> edges = triangulation.getEdges();
 	
 	std::cout << " ========= ";
 	

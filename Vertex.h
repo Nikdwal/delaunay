@@ -10,127 +10,136 @@
 
 #include <list>
 #include "vector2.h"
-//#include "edge.h"
-//#include "triangle.h"
+#include "triangle.h"
 
 using namespace std;
 
-template <typename T>
 // TODO kan deze niet gewoon erven van vector2?
 class Vertex {
 public:
 
-    using PointType = Vector2<T>;
-    //using TriangleType = Triangle<T>;
-    //using EdgeType = Edge<T>;
-
-    Vertex(T _x, T _y) {
+    Vertex(float _x, float _y) {
         x = _x;
         y = _y;
         //neighbors = new list();
     }
 
-    Vertex(const PointType &p) {
+    Vertex(const Vertex &p) {
         x = p.x;
         y = p.y;
         //neighbors = new list();
     }
 
-    T distsq(const Vertex<T> &v) {
-        T dx = x - v.x;
-        T dy = y - v.y;
+    float distsq(const Vertex &v) {
+        float dx = x - v.x;
+        float dy = y - v.y;
         return dx * dx + dy * dy;
     }
 
-    T distsq(const PointType &p) {
-        T dx = x - p.x;
-        T dy = y - p.y;
-        return dx * dx + dy * dy;
-    }
+    //Vertex walkNN(const Vertex &p, const std::vector<Triangle> &triangleList) {
 
-    //@RETURN   geeft ofwel de edge terug waarop p ligt , ofwel de edge die de driehoek waarin p ligt aan zijn linkerkant heeft liggen
-    /*EdgeType getClosestEdge(const Vertex<T> p, const std::vector<TriangleType> triangleList) {
-        TriangleType t = begin(triangleList);
-        EdgeType e = t.getEdge();
+    //    Edge closestEdge = getClosestEdge(p, triangleList);
+    //    
+    //    Vertex &org = closestEdge.getOrigin();
+    //    Vertex &dest = closestEdge.getDestination();
 
-        bool flag = true;
-        while (flag) {
-            if (p == e.getOrigin() || p == e.getDestination()) {
-                flag = false;
-                return e;
-            }
-            else if (RightOf(p, e)) {
-                e = e.getSym();
-            }
-            else if (!RightOf(p, e.getOrgNext(t))) {
-                e = e.getOrgNext(t);
-            }
-            else if (!RightOf(p, e.getDestPrev(t))) {
-                e = e.getDestPrev(t);
-            }
-            else {
-                flag = false;
-                return e;
-            }
-        }
-    }*/
+    //    if (org.distsq(p) < dest.distsq(p)) {
+    //        return org;
+    //    }
+    //    else {
+    //        return dest;
+    //    }
+    //}
+    //
 
-    /*Vertex getNearest(const Vertex<T> p, const TriangleType t) {
-        T d1 = p.distsq(t.p1);
-        T d2 = p.distsq(t.p2);
-        T d3 = p.distsq(t.p3);
-        T least = std::min({ d1, d2, d3 });
-        if (least == d1) {
-            return t.p1;
-        }
-        else if (least == d2) {
-            return t.p2;
-        }
-        else {
-            return t.p3
-        }
-    }*/
+    ////@RETURN geeft ofwel de edge terug waarop p ligt , ofwel de edge die de driehoek waarin p ligt aan zijn linkerkant heeft liggen
+    //Edge getClosestEdge(const Vertex &p, const std::vector<Triangle> triangleList) {
+    //    Triangle t = begin(triangleList);   // TODO: middenste punt nemen als startpunt of eindpunt hilbert
+    //    Edge *e = t.getEdge();
 
-   /* Vertex walkNN(const Vertex<T> p, const std::vector<TriangleType> triangleList) {
+    //    Edge temp;
 
-        EdgeType closestEdge = getClosestEdge(p, triangleList);
-        TriangleType t = closestEdge.getLeftTriangle();             //TODO: implementeer getLeftTriangle()
-        Vertex nearest = getNearest(p, t);
+    //    bool flag = true;
+    //    while (flag) {
+    //        if (p == e->getOrigin() || p == e->getDestination()) {
+    //            flag = false;
+    //            return *e;
+    //        }
+    //        else if (rightOf(p, *e)) {
+    //            temp = e->getSym();
+    //            e = &temp;
+    //        }
+    //        else if (!rightOf(p, e->getOrgNext(t))) {
+    //            temp = e->getOrgNext(t);
+    //            e = &temp;
+    //        }
+    //        else if (!rightOf(p, e->getDestPrev(t))) {
+    //            temp = e->getDestPrev(t);
+    //            e = &temp;
+    //        }
+    //        else {
+    //            flag = false;
+    //            return *e;
+    //        }
+    //    }
+    //}
 
-        return nearest;
-    }*/
+    ////geeft true als punt p rechts van edge e ligt
+    //bool rightOf(const Vertex p, const Edgetype &e) {
+    //    Vertex origin = e.getOrigin();
+    //    Vertex destination = e.getDestination();
 
-	// standaard GS/BW walk naar de dichtste buur van p in de triangulatie
-	Vertex walkNN(const Vertex<T> p){
-       
-        T dmin, d;
-		while(closest == NULL){
-			closest = NULL;
-			for (Vertex *neighbor : current->neighbors){
-				d = neighbor->distsq(p);
-				if (d < dmin){
-					dmin = d;
-					closest = neighbor;
-				}
-			}
-			current = closest;
-		}
-		return current;
-	}
+    //    float det = p.x*(origin.y - destination.y) - origin.x*(p.y - destination.y) + destination.x*(p.y - origin.y);
 
-	T x, y;
-	list<Vertex<T>> neighbors;
+    //    return det > 0;
+    //}
+
+    //Vertex getNearest(const Vertex p, const Triangle t) {
+    //    float d1 = p.distsq(t.p1);
+    //    float d2 = p.distsq(t.p2);
+    //    float d3 = p.distsq(t.p3);
+    //    float least = std::min({ d1, d2, d3 });
+    //    if (least == d1) {
+    //        return t.p1;
+    //    }
+    //    else if (least == d2) {
+    //        return t.p2;
+    //    }
+    //    else {
+    //        return t.p3
+    //    }
+    //}
+
+
+	//// standaard GS/BW walk naar de dichtste buur van p in de triangulatie
+	//Vertex walkNNstd(const Vertex p){
+ //      
+ //       float dmin, d;
+	//	while(closest == NULL){
+	//		closest = NULL;
+	//		for (Vertex *neighbor : current->neighbors){
+	//			d = neighbor->distsq(p);
+	//			if (d < dmin){
+	//				dmin = d;
+	//				closest = neighbor;
+	//			}
+	//		}
+	//		current = closest;
+	//	}
+	//	return current;
+	//}
+
+	float x, y;
+	list<Vertex> neighbors;
 };
 
-template<typename T>
-std::ostream &operator << (std::ostream &str, Vertex<T> const &point)
+std::ostream &operator << (std::ostream &str, Vertex const &point)
 {
 	return str << "Vertex x: " << point.x << " y: " << point.y;
 }
 
-template<typename T>
 // TODO: waarom zijn dit geen wijzers?
-bool operator == (Vertex<T> v1, Vertex<T> v2)
+bool operator == (Vertex v1, Vertex v2)
 {
 	return (v1.x == v2.x) && (v1.y == v2.y) && (v1.neighbors == v2.neighbors);
 }

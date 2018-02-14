@@ -9,16 +9,14 @@
 #include <vector>
 #include <algorithm>
 
-template <class T>
 class Delaunay
 {
 	public:
-		using TriangleType = Triangle<T>;
-		using EdgeType = Edge<T>;
-		using InputType = Vector2<T>;
-		using VertexType = Vertex<T>;
 		
-		const std::vector<TriangleType>& triangulate(std::vector<InputType> &vertices)
+        /* Triangulate geeft een vector(lijst) terug met references
+        * naar driehoeken.
+        */
+		const std::vector<Triangle>& triangulate(std::vector<Vertex> &vertices)
 		{
 			// Store the vertices localy
 			//_vertices = vertices;
@@ -44,35 +42,33 @@ class Delaunay
 			float midy = (minY + maxY) / 2.f;
 
             //construct 3 edges of supertriangle
-			VertexType p1(midx - 20 * deltaMax, midy - deltaMax);
-			VertexType p2(midx, midy + 20 * deltaMax);
-			VertexType p3(midx + 20 * deltaMax, midy - deltaMax);
+			Vertex p1(midx - 20 * deltaMax, midy - deltaMax);
+			Vertex p2(midx, midy + 20 * deltaMax);
+			Vertex p3(midx + 20 * deltaMax, midy - deltaMax);
 
 			//std::cout << "Super triangle " << std::endl << Triangle(p1, p2, p3) << std::endl;
 			
 			// Create a list of triangles, and add the supertriangle in it
-			_triangles.push_back(TriangleType(p1, p2, p3));
+			_triangles.push_back(Triangle(p1, p2, p3));
 
             //!! p is een reference!!
 			for(auto p = begin(vertices); p != end(vertices); p++)
 			{
-				//std::cout << "Traitement du point " << *p << std::endl;
-				//std::cout << "_triangles contains " << _triangles.size() << " elements" << std::endl;	
 
-				std::vector<EdgeType> polygon;
+				std::vector<Edge> polygon;
 
                 //*p returns the value that is pointed to by pointer p because vertices = &vertices is a list of references to points!
                 //p points to a vertex that has an x and a y coordinate
-				VertexType v(*p);
+				Vertex v(*p);
                 
-				// TODO: maak dit efficienter met een wandeling
+                //Vertex nearest = walkNN(*p, _triangles);
+
+				// TODO: maak dit efficienter met een wandeling + tree search
 				for(auto t = begin(_triangles); t != end(_triangles); t++)
 				{
-					//std::cout << "Processing " << std::endl << *t << std::endl;
-
-					if(t->circumCircleContains(v))
+                
+                    if(t->circumCircleContains(v))
 					{
-						//std::cout << "Pushing bad triangle " << *t << std::endl;
                         //if circumcircle of triangle t contains v then t is a bad triangle (i.e. a triangle that should be adjusted/removed.
 						t->isBad = true;
 						polygon.push_back(t->e1);	
@@ -85,7 +81,7 @@ class Delaunay
 					}
 				}
 
-				_triangles.erase(std::remove_if(begin(_triangles), end(_triangles), [](TriangleType &t){
+				_triangles.erase(std::remove_if(begin(_triangles), end(_triangles), [](Triangle &t){
 					// TODO verwijder vertices uit de adjacency list van elk vormend punt
 					return t.isBad;
 				}), end(_triangles));
@@ -105,17 +101,17 @@ class Delaunay
 					}
 				}
 
-				polygon.erase(std::remove_if(begin(polygon), end(polygon), [](EdgeType &e){
+				polygon.erase(std::remove_if(begin(polygon), end(polygon), [](Edge &e){
 					return e.isBad;
 				}), end(polygon));
 
 				for(auto e = begin(polygon); e != end(polygon); e++)
 					// TODO: voeg nieuwe punten toe aan de adjacency lists van v, p1 en p2
-					_triangles.push_back(TriangleType(e->p1, e->p2, v));
+					_triangles.push_back(Triangle(e->p1, e->p2, v));
 			
 			}
 
-			_triangles.erase(std::remove_if(begin(_triangles), end(_triangles), [p1, p2, p3](TriangleType &t){
+			_triangles.erase(std::remove_if(begin(_triangles), end(_triangles), [p1, p2, p3](Triangle &t){
 				// TODO verwijder vertices uit de adjacency list van elk vormend punt
 				return t.containsVertex(p1) || t.containsVertex(p2) || t.containsVertex(p3);
 			}), end(_triangles));
@@ -130,14 +126,14 @@ class Delaunay
 			return _triangles;
 		}
 		
-		const std::vector<TriangleType>& getTriangles() const { return _triangles; };
-		const std::vector<EdgeType>& getEdges() const { return _edges; };
-		const std::vector<InputType>& getVertices() const { return _vertices; };
+		const std::vector<Triangle>& getTriangles() const { return _triangles; };
+		const std::vector<Edge>& getEdges() const { return _edges; };
+		const std::vector<Vertex>& getVertices() const { return _vertices; };
 
 	private:
-		std::vector<TriangleType> _triangles;
-		std::vector<EdgeType> _edges;
-		std::vector<InputType> _vertices;
+		std::vector<Triangle> _triangles;
+		std::vector<Edge> _edges;
+		std::vector<Vertex> _vertices;
 };
 
 #endif
