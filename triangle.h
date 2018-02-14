@@ -1,20 +1,22 @@
 #ifndef H_TRIANGLE
 #define H_TRIANGLE
 
-#include "Vertex.h"
-#include "edge.h"
-
 #include <assert.h>
 #include <math.h>
 
+#include "Vertex.h"
+#include "edge.h"
+
+class Vertex;
+class Edge;
 class Triangle
 {
 	public:
 			
-		Triangle(const Vertex &_p1, const Vertex &_p2, const Vertex &_p3)
-		:	p1(_p1), p2(_p2), p3(_p3),
-			e1(_p1, _p2), e2(_p2, _p3), e3(_p3, _p1), isBad(false)
-		{}
+        Triangle(const Vertex &_p1, const Vertex &_p2, const Vertex &_p3)
+            : p1(_p1), p2(_p2), p3(_p3),
+            e1(p1, p2), e2(p2, p3), e3(p3, p1), isBad(false)
+        {}
 	
 		bool containsVertex(const Vertex &v)
 		{
@@ -64,6 +66,5 @@ inline bool operator == (const Triangle &t1, const Triangle &t2)
 			(t1.p2 == t2.p1 || t1.p2 == t2.p2 || t1.p2 == t2.p3) && 
 			(t1.p3 == t2.p1 || t1.p3 == t2.p2 || t1.p3 == t2.p3);
 }
-
 
 #endif

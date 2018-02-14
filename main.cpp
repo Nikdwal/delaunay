@@ -12,7 +12,6 @@
 #include "vector2.h"
 #include "triangle.h"
 #include "delaunay.h"
-#include "Vertex.h"
 
 /*
 * !! X-AS STAAT VERTICAAL EN Y-AS STAAT HORIZONTAAL !!

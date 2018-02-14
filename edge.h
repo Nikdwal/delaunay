@@ -3,6 +3,7 @@
 
 #include "Vertex.h"
 
+class Triangle;
 class Edge
 {
 	public:
@@ -24,13 +25,15 @@ class Edge
             return Edge(p2, p1);
         }
 
-        Edge getOrgNext(Triangle t){
-          return Edge(t.getFirst(), t.getThird());  
-        }
+        //Edge getOrgNext(Triangle t){
+        //  //return Edge(t.getFirst(), t.getThird()); 
+        //    return NULL;
+        //}
 
-        Edge getDestPrev(Triangle t) {
-          return Edge(t.getThird(), t.getSecond());
-        }
+        //Edge getDestPrev(Triangle t) {
+        //  //return Edge(t.getThird(), t.getSecond());
+        //    return NULL;
+        //}
 
         Vertex p1;
         Vertex p2;
