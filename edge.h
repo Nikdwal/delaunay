@@ -3,7 +3,6 @@
 
 #include "Vertex.h"
 
-class Triangle;
 class Edge
 {
 	public:
@@ -25,6 +24,12 @@ class Edge
             return Edge(p2, p1);
         }
 
+        //geeft true als punt p rechts van edge e ligt
+        bool rightOf(const Vertex p) {
+            float det = p.x*(p1.y - p2.y) - p1.x*(p.y - p2.y) + p2.x*(p.y - p1.y);
+            return det > 0;
+        }
+
         //Edge getOrgNext(Triangle t){
         //  //return Edge(t.getFirst(), t.getThird()); 
         //    return NULL;
@@ -34,6 +39,10 @@ class Edge
         //  //return Edge(t.getThird(), t.getSecond());
         //    return NULL;
         //}
+
+        bool contains(Vertex p) {
+            return p == p1 || p == p2;
+        }
 
         Vertex p1;
         Vertex p2;

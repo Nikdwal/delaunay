@@ -5,6 +5,7 @@
 #include "edge.h"
 #include "triangle.h"
 #include "Vertex.h"
+#include "NearestSearch.h"
 
 #include <vector>
 #include <algorithm>
@@ -71,9 +72,9 @@ class Delaunay
 					{
                         //if circumcircle of triangle t contains v then t is a bad triangle (i.e. a triangle that should be adjusted/removed.
 						t->isBad = true;
-						polygon.push_back(t->e1);	
-						polygon.push_back(t->e2);	
-						polygon.push_back(t->e3);	
+						polygon.push_back(t->e12);	
+						polygon.push_back(t->e23);	
+						polygon.push_back(t->e31);	
 					}
 					else
 					{
@@ -118,9 +119,9 @@ class Delaunay
 
 			for(auto t = begin(_triangles); t != end(_triangles); t++)
 			{
-				_edges.push_back(t->e1);
-				_edges.push_back(t->e2);
-				_edges.push_back(t->e3);
+				_edges.push_back(t->e12);
+				_edges.push_back(t->e23);
+				_edges.push_back(t->e31);
 			} 
 
 			return _triangles;
