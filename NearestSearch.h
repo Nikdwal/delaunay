@@ -16,13 +16,13 @@ Edge getClosestEdge(const Vertex &p, const std::vector<Triangle> triangleList) {
         if (p == e.getOrigin() || p == e.getDestination()) {
             return e;
         }
-        else if (e.rightOf(p)) {
+        else if (e.leftOf(p)) {
             e = e.getSym();
         }
-        else if (!(t.getOrgNext(e)).rightOf(p)) {
+        else if (!(t.getOrgNext(e)).leftOf(p)) {
             e = t.getOrgNext(e);
         }
-        else if (!(t.getDestPrev(e)).rightOf(p)) {
+        else if (!(t.getDestPrev(e)).leftOf(p)) {
             e = t.getDestPrev(e);
         }
         else {
@@ -46,5 +46,9 @@ Vertex walkNN(const Vertex &p, const std::vector<Triangle> &triangleList) {
         return dest;
     }
 }
+
+//Triangle getContainingTriangle(Vertex v, Triangle t) {
+//
+//}
 
 #endif
