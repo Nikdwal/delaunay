@@ -29,5 +29,23 @@ bool circumCircleContains(PH::Facet_const_handle triangle, const Point &v) {
 	return dist_sq <= circum_radius_sq;
 }
 
+//geeft true als punt p rechts van edge e ligt
+bool rightOf(PH::Halfedge_const_handle e, const PH::Point &p) {
+	const Point &p1 = e->opposite()->vertex()->point();
+	const Point &p2 = e->vertex()->point();
+    float det = p.x()*(p1.y() - p2.y()) - p1.x()*(p.y() - p2.y()) + p2.x()*(p.y() - p1.y());
+    return det > 0;
+}
+
+PH::Halfedge_handle origNext(PH::Halfedge_handle e){
+	PH::Halfedge_around_vertex_circulator iter = e->opposite()->vertex()->vertex_begin();
+	return prev(iter);
+}
+
+PH::Halfedge_handle destPrev(PH::Halfedge_handle e){
+	PH::Halfedge_around_vertex_circulator iter = e->vertex()->vertex_begin();
+	return next(iter);
+}
+
 
 #endif /* GEOMETRY_H_ */
