@@ -94,17 +94,50 @@ class Delaunay_CGAL
 						PH::Halfedge_handle e2 = polygon[j];
 						if(e1->opposite() == e2)
 						{
-							// alle bogen die via twee verschillende driehoeken gevonden worden, moeten weg
+							// alle bogen die via twee verschillende driehoeken gevonden worden, moeten volledig weg (samen met hun tweeling)
 							isBad = true;
+							// TODO: Moet je wel een lijst met bad-edges bijhouden? Want je kunt ook gewoon alle halfedges uit
+							// de "slechte" driehoeken verwijderen.
 							badEdges.push_back(e1);
 						}
-						// alle bogen die maar via 1 driehoek gevonden worden, worden deel van een nieuwe driehoek
+						// alle bogen die maar via 1 driehoek gevonden worden, worden deel van een nieuwe driehoek die p zal bevatten
 						if(!isBad)
-							goodEdges.push_back(e1);
+							goodEdges.push_back(e1->opposite());
 					}
 				}
 
-				// TODO: voeg nieuwe driehoeken toe
+				// Verwijder alle halfbogen van polygon uit de de triangulatie om zo een veelhoekig gat te maken.
+				// Voor elke (half)boog die verwijderd wordt, moet je er eerst voor zorgen dat er geen punten verwijderd
+				// worden door CGAL. Als je voor elke boog waarvan de tweeling een buitenrand is, een extra
+				// vlak toevoegt, *denk ik* dat je veilig zit, maar het is goed mogelijk dat dit eigenlijk teveel werk is.
+				std::vector<PH::Halfedge_handle> auxEdges;
+				for(int i = 0; i < polygon.size(); i++){
+					PH::Halfedge_handle e = auxEdges[i]->opposite();
+					if(! e->is_border())
+						continue; // deze is niet in gevaar
+
+					// deze boog is aangrenzend aan een andere boog op de rand. Normaal gezien ligt de vorige boog op de
+					// rand, maar het zou kunnen (omwille van de volgorde van de bogen) dat je ook naar de volgende moet kijken
+					PH::Halfedge_handle otherBorder = e->prev();
+					if(!otherBorder->is_border())
+						throw std::runtime_error("Fout in de implementatie.");
+					auxEdges.push_back(triangulation.add_vertex_and_facet_to_border(otherBorder, e));
+				}
+				// Verwijder nu effectief alle halfbogen die weg moeten
+				for(int i = 0; i < badTriangles.size(); i++)
+					triangulation.erase_facet(badTriangles[i]->halfedge());
+
+
+				// Voeg de nieuwe driehoeken toe met een punt in p
+				PH::Halfedge_handle he = goodEdges[0]->opposite(); // zou op de rand van het gat moeten liggen m.a.w. he->is_border()
+				PH::Halfedge_handle edgeFromP = triangulation.add_vertex_and_facet_to_border(he->prev(), he)->opposite();
+				edgeFromP->vertex()->point() = *p; // he is nu deel van een driehoek
+				for(int i = 0; i < goodEdges.size() - 2; i++)
+					edgeFromP = triangulation.add_vertex_and_facet_to_border(edgeFromP->prev(), edgeFromP->next())->opposite();
+
+				// verwijder wat je met de hulpbogen had toegevoegd
+				for(int i = 0; i < auxEdges.size(); i++)
+					triangulation.erase_facet(auxEdges[i]);
 			
 			}
 
