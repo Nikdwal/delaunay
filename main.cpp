@@ -12,6 +12,7 @@
 #include "vector2.h"
 #include "triangle.h"
 #include "delaunay.h"
+#include "cgaltests.h"
 
 /*
 * !! X-AS STAAT VERTICAAL EN Y-AS STAAT HORIZONTAAL !!
@@ -30,6 +31,12 @@ float RandomFloat(float a, float b) {
 
 int main()
 {
+
+	cgaltests();
+	return 0;
+
+
+	/*
     //srand is PSEUD-RNG, moet als argument een bepaald getal meekrijgen (zelfde getal zal altijd zelfde 'random' getallen genereren 
     //--> door argument TIME(NULL) mee te geven wordt verzekerd dat het telkens andere getallen zijn)
 	srand (time(NULL));
@@ -82,6 +89,8 @@ int main()
 
     std::cout << "Triangulation took " << int_ms.count() << "ms" << std::endl;
 
+    /*
+
 	// SFML window
     	sf::RenderWindow window(sf::VideoMode(800, 600), "Delaunay triangulation");
 
@@ -127,5 +136,7 @@ int main()
 		window.display();
 	}
 	
+	*/
+
 	return 0;
 }

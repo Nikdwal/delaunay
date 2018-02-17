@@ -8,3 +8,9 @@ peda-session-delaunay.txt
 .cproject
 .project
 .settings
+
+Makefile
+CMakeCache.txt
+CMakeFiles/
+CMakeLists.txt
+cmake_install.cmake
