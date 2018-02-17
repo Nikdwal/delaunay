@@ -14,6 +14,7 @@
 #include "delaunay.h"
 #include "cgaltests.h"
 
+#include "delaunay_cgal.h"
 /*
 * !! X-AS STAAT VERTICAAL EN Y-AS STAAT HORIZONTAAL !!
 */
