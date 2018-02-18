@@ -244,19 +244,14 @@ class Delaunay_CGAL
 			// verwijder de super-triangle en alle driehoeken die met de hoekpunten hiervan verbonden zijn
 			for(int i = 0; i < 3; i++){
 				PH::Vertex_handle v = superVertices[i];
-				PH::Halfedge_around_vertex_circulator incident_edge = v->vertex_begin();
-				int deg = v->vertex_degree();
-				for(int j = 0; j < deg; j++){
-					if(incident_edge->is_border())
-						continue;
-					triangulation.erase_facet(incident_edge);
-					incident_edge++;
-				}
+				// we weten dat v op de rand ligt
+				int deg = v->degree();
+				PH::Halfedge_around_vertex_circulator e = v->vertex_begin();
+				while(!(e->is_border_edge() && prev(e)->is_border_edge())) e++;
+				for(int i=0; i < deg - 1; i++)
+					triangulation.erase_facet(e++);
 			}
 
-			if(! isDelaunay()){
-				throw std::runtime_error("Geen delaunay-triangulatie");
-			}
 			return triangulation;
 		}
 

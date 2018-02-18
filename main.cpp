@@ -40,9 +40,9 @@ int main()
 
     //srand is PSEUD-RNG, moet als argument een bepaald getal meekrijgen (zelfde getal zal altijd zelfde 'random' getallen genereren 
     //--> door argument time(NULL) mee te geven wordt verzekerd dat het telkens andere getallen zijn)
-	srand (1);
+	srand (time(NULL));
 	
-    float numberPoints = 50;
+    float numberPoints = 3000;
 //    float numberPoints = roundf(RandomFloat(4, 40));
 
 //	std::cout << "Generating " << numberPoints << " random points" << std::endl;
