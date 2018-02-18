@@ -2,6 +2,7 @@
 #define H_DELAUNAY_CGAL
 
 #include "geometry.h"
+#include "NearestSearch.h"
 
 #include <iostream>
 #include <vector>
@@ -117,18 +118,30 @@ class Delaunay_CGAL
 			for(int i = 0; i < 3; i++)
 				superVertices[i] = v_iter++;
 
+			// We kunnen te maken hebben met een vlak waarvan de normaal ofwel de eenheidsvector in
+			// de z-richting is, ofwel in de tegengestelde richting.
+			// De halfbogen draaien ccw rond deze normaal, en het is handiger om zeker te
+			// zijn dat die in de positieve z-richting is.
+			PH::Halfedge_handle internalEdge = triangulation.facets_begin()->halfedge();
+			if(rightOf(internalEdge, internalEdge->next()->vertex()->point()))
+				triangulation.inside_out();
+
 			for(auto p = begin(vertices); p != end(vertices); p++)
 			{
 
-				std::cout << "adding point " << p->x() << ", " << p->y() << "\n\n";
-				if(! isDelaunay()){
-					throw std::runtime_error("Geen delaunay-triangulatie");
-					return triangulation;
-				}
+//				std::cout << "adding point " << p->x() << ", " << p->y() << "\n\n";
+//				if(! isDelaunay()){
+//					throw std::runtime_error("Geen delaunay-triangulatie");
+//					return triangulation;
+//				}
 
 				std::vector<PH::Halfedge_handle> polygon;
 				std::vector<PH::Facet_handle> badTriangles;
 
+				// debug
+				PH::Halfedge_handle gs_edge = adjEdge(*p, triangulation);
+				if(!circumCircleContains(gs_edge->facet(), *p))
+					throw std::runtime_error("gs walk is fout");
 
 				// TODO: maak dit efficienter met een wandeling + tree search
 				for(PH::Facet_handle t = triangulation.facets_begin(); t != triangulation.facets_end(); t++)
@@ -149,8 +162,6 @@ class Delaunay_CGAL
 						//std::cout << " does not contain " << *p << " in his circum center" << std::endl;
 					}
 				}
-
-				// TODO: verwijder "slechte" driehoeken
 
 				// markeer edges die wel en niet weg moeten
 				std::vector<PH::Halfedge_handle> goodEdges;
@@ -222,14 +233,11 @@ class Delaunay_CGAL
 				// nu is er enkel nog een driehoekig gat dat moet opgevuld worden (zonder bogen toe te voegen)
 				triangulation.fill_hole(he);
 
-
-
 				// verwijder wat je met de hulpbogen had toegevoegd
 				for(int i = 0; i < auxEdges.size(); i++)
 					triangulation.erase_facet(auxEdges[i]);
 
-				// debug
-				print();
+				// print();
 			
 			}
 
@@ -246,6 +254,9 @@ class Delaunay_CGAL
 				}
 			}
 
+			if(! isDelaunay()){
+				throw std::runtime_error("Geen delaunay-triangulatie");
+			}
 			return triangulation;
 		}
 

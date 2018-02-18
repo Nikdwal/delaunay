@@ -8,6 +8,9 @@ typedef CGAL::Simple_cartesian<double>		Kernel;
 typedef Kernel::Point_3						Point;
 typedef CGAL::Polyhedron_3<Kernel>			PH;
 
+
+
+
 bool circumCircleContains(PH::Facet_const_handle triangle, const Point &v) {
 	// TODO: kon dit ook niet met een determinant? Zie liu/snoeyink
 	PH::Halfedge_const_handle e = triangle->halfedge();
@@ -31,19 +34,19 @@ bool circumCircleContains(PH::Facet_const_handle triangle, const Point &v) {
 
 //geeft true als punt p rechts van edge e ligt
 bool rightOf(PH::Halfedge_const_handle e, const PH::Point &p) {
-	const Point &p1 = e->opposite()->vertex()->point();
-	const Point &p2 = e->vertex()->point();
-    float det = p.x()*(p1.y() - p2.y()) - p1.x()*(p.y() - p2.y()) + p2.x()*(p.y() - p1.y());
+	const Point &v = e->opposite()->vertex()->point();
+	const Point &w = e->vertex()->point();
+    float det = (p.x() - v.x())*(w.y() - v.y()) - (p.y() - v.y())*(w.x() - v.x());
     return det > 0;
 }
 
 PH::Halfedge_handle origNext(PH::Halfedge_handle e){
-	PH::Halfedge_around_vertex_circulator iter = e->opposite()->vertex()->vertex_begin();
-	return prev(iter);
+	PH::Halfedge_around_vertex_circulator iter = e->opposite()->vertex_begin();
+	return prev(iter)->opposite();
 }
 
 PH::Halfedge_handle destPrev(PH::Halfedge_handle e){
-	PH::Halfedge_around_vertex_circulator iter = e->vertex()->vertex_begin();
+	PH::Halfedge_around_vertex_circulator iter = e->vertex_begin();
 	return next(iter);
 }
 

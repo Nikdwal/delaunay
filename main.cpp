@@ -37,24 +37,24 @@ float RandomFloat(float a, float b) {
 int main()
 {
 
-	/*
-    //srand is PSEUD-RNG, moet als argument een bepaald getal meekrijgen (zelfde getal zal altijd zelfde 'random' getallen genereren 
-    //--> door argument TIME(NULL) mee te geven wordt verzekerd dat het telkens andere getallen zijn)
-	srand (time(NULL));
-	
-    float numberPoints = 5;
-    //float numberPoints = roundf(RandomFloat(4, 40));
 
-	std::cout << "Generating " << numberPoints << " random points" << std::endl;
+    //srand is PSEUD-RNG, moet als argument een bepaald getal meekrijgen (zelfde getal zal altijd zelfde 'random' getallen genereren 
+    //--> door argument time(NULL) mee te geven wordt verzekerd dat het telkens andere getallen zijn)
+	srand (1);
+	
+    float numberPoints = 50;
+//    float numberPoints = roundf(RandomFloat(4, 40));
+
+//	std::cout << "Generating " << numberPoints << " random points" << std::endl;
 
     /*
     * Genereer de punten
     */
 	std::vector<Point> points; //std::vector is een dynamische lijst
 	
-    //for(int i = 0; i < numberPoints; i++) {
-	//	points.push_back(Vertex(RandomFloat(0, 800), RandomFloat(0, 600))); //push_back voegt punt toe aan einde lijst
-	//}
+    for(int i = 0; i < numberPoints; i++) {
+		points.push_back(Point(RandomFloat(0, 800), RandomFloat(0, 600), 0)); //push_back voegt punt toe aan einde lijst
+	}
     
     points.push_back(Point(100.0, 200.0, 0));
     points.push_back(Point(200.0, 400.0, 0));
@@ -92,7 +92,7 @@ int main()
 
     std::cout << "Triangulation took " << int_ms.count() << "ms" << std::endl;
 
-    triangulator.print();
+//    triangulator.print();
 
     /*
 	// SFML window

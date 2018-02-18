@@ -11,6 +11,36 @@ typedef CGAL::Simple_cartesian<double>		Kernel;
 typedef Kernel::Point_3						Point;
 typedef CGAL::Polyhedron_3<Kernel>			PH;
 
+std::string es(PH::Halfedge_handle e){
+	std::string s = "";
+	s += "Start: (";
+	s += std::to_string(e->opposite()->vertex()->point().x());
+	s += ", ";
+	s += std::to_string(e->opposite()->vertex()->point().y());
+	s += ", ";
+	s += std::to_string(e->opposite()->vertex()->point().z());
+	s +=")\nEnd: (";
+	s += std::to_string(e->vertex()->point().x());
+	s += ", ";
+	s += std::to_string(e->vertex()->point().y());
+	s += ", ";
+	s += std::to_string(e->vertex()->point().z());
+	s += ")\n\n";
+	return s;
+}
+
+std::string ps(Point &p){
+	std::string s = "";
+	s += "(";
+	s += std::to_string(p.x());
+	s += ", ";
+	s += std::to_string(p.y());
+	s += ", ";
+	s += std::to_string(p.z());
+	s +=")";
+	return s;
+}
+
 // algoritme van Guibas-Stolfi voor lokalisatie
 PH::Halfedge_handle adjEdge(const Point &p, PH::Halfedge_handle startEdge){
 	PH::Halfedge_handle e = startEdge;
