@@ -2,11 +2,11 @@
 #define H_EDGE
 
 #include "Vertex.h"
+#include "triangle.h"
 
 class Edge
 {
 	public:
-
 		Edge(Vertex &p1, Vertex &p2) 
             : p1(p1), p2(p2), isBad(false) {};
 		Edge(const Edge &e) : p1(e.p1), p2(e.p2), isBad(false) {};

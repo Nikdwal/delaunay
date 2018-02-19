@@ -5,12 +5,12 @@
 #include <math.h>
 
 #include "Vertex.h"
-#include "edge.h"
 
+class Edge;
 class Triangle
 {
 	public:
-			
+		
         Triangle(const Vertex &_p1, const Vertex &_p2, const Vertex &_p3)
             : p1(_p1), p2(_p2), p3(_p3),
             e12(p1, p2), e23(p2, p3), e31(p3, p1), isBad(false)

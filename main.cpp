@@ -8,11 +8,16 @@
 #include <chrono>
 
 #include <SFML/Graphics.hpp>
+#include <CGAL/Simple_cartesian.h>
+#include <CGAL/Polyhedron_3.h>
 
-#include "vector2.h"
-#include "triangle.h"
-#include "delaunay.h"
-#include "cgaltests.h"
+typedef CGAL::Simple_cartesian<double>		Kernel;
+typedef Kernel::Point_3						Point;
+typedef CGAL::Polyhedron_3<Kernel>			PH;
+
+#include "delaunay_cgal.h"
+
+
 
 /*
 * !! X-AS STAAT VERTICAAL EN Y-AS STAAT HORIZONTAAL !!
@@ -32,44 +37,39 @@ float RandomFloat(float a, float b) {
 int main()
 {
 
-	cgaltests();
-	return 0;
 
-
-	/*
     //srand is PSEUD-RNG, moet als argument een bepaald getal meekrijgen (zelfde getal zal altijd zelfde 'random' getallen genereren 
-    //--> door argument TIME(NULL) mee te geven wordt verzekerd dat het telkens andere getallen zijn)
+    //--> door argument time(NULL) mee te geven wordt verzekerd dat het telkens andere getallen zijn)
 	srand (time(NULL));
 	
-    float numberPoints = 5;
-    //float numberPoints = roundf(RandomFloat(4, 40));
+    float numberPoints = 3000;
+//    float numberPoints = roundf(RandomFloat(4, 40));
 
-	std::cout << "Generating " << numberPoints << " random points" << std::endl;
+//	std::cout << "Generating " << numberPoints << " random points" << std::endl;
 
     /*
     * Genereer de punten
     */
-	std::vector<Vertex> points; //std::vector is een dynamische lijst
+	std::vector<Point> points; //std::vector is een dynamische lijst
 	
-    //for(int i = 0; i < numberPoints; i++) {
-	//	points.push_back(Vertex(RandomFloat(0, 800), RandomFloat(0, 600))); //push_back voegt punt toe aan einde lijst
-	//}
+    for(int i = 0; i < numberPoints; i++) {
+		points.push_back(Point(RandomFloat(0, 800), RandomFloat(0, 600), 0)); //push_back voegt punt toe aan einde lijst
+	}
     
-    points.push_back(Vertex(100.0, 200.0));
-    points.push_back(Vertex(200.0, 400.0));
-    points.push_back(Vertex(300.0, 100.0));
-    points.push_back(Vertex(400.0, 500.0));
-    points.push_back(Vertex(500.0, 300.0));
+    points.push_back(Point(100.0, 200.0, 0));
+    points.push_back(Point(200.0, 400.0, 0));
+    points.push_back(Point(300.0, 100.0, 0));
+    points.push_back(Point(400.0, 500.0, 0));
+    points.push_back(Point(500.0, 300.0, 0));
 
-
-	Delaunay triangulation;
+	Delaunay_CGAL triangulator;
 
     auto t1 = std::chrono::high_resolution_clock::now();
-	std::vector<Triangle> triangles = triangulation.triangulate(points);
+	PH tri = triangulator.triangulate(points);
     auto t2 = std::chrono::high_resolution_clock::now();
 
-	std::cout << triangles.size() << " triangles generated\n";
-	std::vector<Edge> edges = triangulation.getEdges();
+	std::cout << tri.size_of_facets() << " triangles generated\n";
+	//std::vector<Edge> edges = triangulator.getEdges();
 	
 	std::cout << " ========= ";
 	
@@ -77,20 +77,24 @@ int main()
 	for(auto &p : points)
 		std::cout << p << std::endl;
 	
-	std::cout << "\nTriangles : " << triangles.size() << std::endl;
-	for(auto &t : triangles)
-		std::cout << t << std::endl;
+	if(points.size() != tri.size_of_vertices())
+		throw std::runtime_error("Triangulated the wrong number of points.");
 
-	std::cout << "\nEdges : " << edges.size() << std::endl;
-	for(auto &e : edges)
-		std::cout << e << std::endl;
+//	std::cout << "\nTriangles : " << tri.size_of_facets() << std::endl;
+//	for(auto &t : triangles)
+//		std::cout << t << std::endl;
+//
+//	std::cout << "\nEdges : " << edges.size() << std::endl;
+//	for(auto &e : edges)
+//		std::cout << e << std::endl;
 
     auto int_ms = std::chrono::duration_cast<std::chrono::milliseconds>(t2 - t1);
 
     std::cout << "Triangulation took " << int_ms.count() << "ms" << std::endl;
 
-    /*
+//    triangulator.print();
 
+    /*
 	// SFML window
     	sf::RenderWindow window(sf::VideoMode(800, 600), "Delaunay triangulation");
 
@@ -99,16 +103,16 @@ int main()
 
 	for(auto p = begin(points); p != end(points); p++) {
 		sf::RectangleShape *c1 = new sf::RectangleShape(sf::Vector2f(4, 4));
-		c1->setPosition(p->x, p->y);
+		c1->setPosition(p->x(), p->y());
 		squares.push_back(c1);
 	}
 	
 	// Make the lines
 	std::vector<std::array<sf::Vertex, 2> > lines;
-	for(auto e = begin(edges); e != end(edges); e++) {
+	for(auto e = tri.halfedges_begin(); e != tri.halfedges_end(); e++) {
 		lines.push_back({{
-			sf::Vertex(sf::Vector2f((*e).p1.x + 2, (*e).p1.y + 2)),	
-			sf::Vertex(sf::Vector2f((*e).p2.x + 2, (*e).p2.y + 2))	
+			sf::Vertex(sf::Vector2f(e->vertex()->point().x() + 2, e->vertex()->point().y() + 2)),
+			sf::Vertex(sf::Vector2f(e->opposite()->vertex()->point().x() + 2, e->opposite()->vertex()->point().y()))
 		}});
 	}
  
@@ -135,8 +139,9 @@ int main()
 	       	
 		window.display();
 	}
-	
 	*/
+	
+
 
 	return 0;
 }
