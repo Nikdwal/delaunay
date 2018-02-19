@@ -2,11 +2,11 @@
 #define H_EDGE
 
 #include "Vertex.h"
+#include "triangle.h"
 
 class Edge
 {
 	public:
-
 		Edge(Vertex &p1, Vertex &p2) 
             : p1(p1), p2(p2), isBad(false) {};
 		Edge(const Edge &e) : p1(e.p1), p2(e.p2), isBad(false) {};
@@ -25,20 +25,10 @@ class Edge
         }
 
         //geeft true als punt p rechts van edge e ligt
-        bool rightOf(const Vertex p) {
+        bool leftOf(const Vertex p) {
             float det = p.x*(p1.y - p2.y) - p1.x*(p.y - p2.y) + p2.x*(p.y - p1.y);
             return det > 0;
         }
-
-        //Edge getOrgNext(Triangle t){
-        //  //return Edge(t.getFirst(), t.getThird()); 
-        //    return NULL;
-        //}
-
-        //Edge getDestPrev(Triangle t) {
-        //  //return Edge(t.getThird(), t.getSecond());
-        //    return NULL;
-        //}
 
         bool contains(Vertex p) {
             return p == p1 || p == p2;

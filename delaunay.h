@@ -62,9 +62,9 @@ class Delaunay
                 //p points to a vertex that has an x and a y coordinate
 				Vertex v(*p);
                 
-                //Vertex nearest = walkNN(*p, _triangles);
+                Vertex nearest = walkNN(v, _triangles);
 
-				// TODO: maak dit efficienter met een wandeling + tree search
+                //TODO: maak dit efficienter met een wandeling + tree search
 				for(auto t = begin(_triangles); t != end(_triangles); t++)
 				{
                 

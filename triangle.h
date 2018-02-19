@@ -5,12 +5,12 @@
 #include <math.h>
 
 #include "Vertex.h"
-#include "edge.h"
 
+class Edge;
 class Triangle
 {
 	public:
-			
+		
         Triangle(const Vertex &_p1, const Vertex &_p2, const Vertex &_p3)
             : p1(_p1), p2(_p2), p3(_p3),
             e12(p1, p2), e23(p2, p3), e31(p3, p1), isBad(false)
@@ -44,8 +44,8 @@ class Triangle
 
             Vertex v = e.getOrigin();
             if (!e.contains(p1)) return Edge(v, p1);
-            if (!e.contains(p2)) return Edge(v, p2);
-            if (!e.contains(p3)) return Edge(v, p3);
+            else if (!e.contains(p2)) return Edge(v, p2);
+            else if (!e.contains(p3)) return Edge(v, p3);
            
         }
 
@@ -53,8 +53,8 @@ class Triangle
         
             Vertex v = e.getDestination();
             if (!e.contains(p1)) return Edge(p1, v);
-            if (!e.contains(p2)) return Edge(p2, v);
-            if (!e.contains(p3)) return Edge(p3, v);
+            else if (!e.contains(p2)) return Edge(p2, v);
+            else if (!e.contains(p3)) return Edge(p3, v);
         }
 
         Vertex getNearest(const Vertex &p) {
