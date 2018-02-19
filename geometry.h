@@ -5,7 +5,8 @@
 #include <CGAL/Simple_cartesian.h>
 #include <CGAL/Polyhedron_3.h>
 
-typedef CGAL::Simple_cartesian<double>		Kernel;
+typedef double								Real;
+typedef CGAL::Simple_cartesian<Real>		Kernel;
 typedef Kernel::Point_3						Point;
 typedef CGAL::Polyhedron_3<Kernel>			PH;
 
@@ -21,15 +22,15 @@ bool circumCircleContains(PH::Facet_const_handle triangle, const Point &v) {
 		e = e->next();
 	}
 
-	float ab = (p[0].x() * p[0].x()) + (p[0].y() * p[0].y());
-	float cd = (p[1].x() * p[1].x()) + (p[1].y() * p[1].y());
-	float ef = (p[2].x() * p[2].x()) + (p[2].y() * p[2].y());
+	Real ab = (p[0].x() * p[0].x()) + (p[0].y() * p[0].y());
+	Real cd = (p[1].x() * p[1].x()) + (p[1].y() * p[1].y());
+	Real ef = (p[2].x() * p[2].x()) + (p[2].y() * p[2].y());
 
-	float circum_x = (ab * (p[2].y() - p[1].y()) + cd * (p[0].y() - p[2].y()) + ef * (p[1].y() - p[0].y())) / (p[0].x() * (p[2].y() - p[1].y()) + p[1].x() * (p[0].y() - p[2].y()) + p[2].x() * (p[1].y() - p[0].y())) / 2.f;
-	float circum_y = (ab * (p[2].x() - p[1].x()) + cd * (p[0].x() - p[2].x()) + ef * (p[1].x() - p[0].x())) / (p[0].y() * (p[2].x() - p[1].x()) + p[1].y() * (p[0].x() - p[2].x()) + p[2].y() * (p[1].x() - p[0].x())) / 2.f;
-	float circum_radius_sq = ((p[0].x() - circum_x) * (p[0].x() - circum_x)) + ((p[0].y() - circum_y) * (p[0].y() - circum_y));
+	Real circum_x = (ab * (p[2].y() - p[1].y()) + cd * (p[0].y() - p[2].y()) + ef * (p[1].y() - p[0].y())) / (p[0].x() * (p[2].y() - p[1].y()) + p[1].x() * (p[0].y() - p[2].y()) + p[2].x() * (p[1].y() - p[0].y())) / 2.f;
+	Real circum_y = (ab * (p[2].x() - p[1].x()) + cd * (p[0].x() - p[2].x()) + ef * (p[1].x() - p[0].x())) / (p[0].y() * (p[2].x() - p[1].x()) + p[1].y() * (p[0].x() - p[2].x()) + p[2].y() * (p[1].x() - p[0].x())) / 2.f;
+	Real circum_radius_sq = ((p[0].x() - circum_x) * (p[0].x() - circum_x)) + ((p[0].y() - circum_y) * (p[0].y() - circum_y));
 
-	float dist_sq = ((v.x() - circum_x) * (v.x() - circum_x)) + ((v.y() - circum_y) * (v.y() - circum_y));
+	Real dist_sq = ((v.x() - circum_x) * (v.x() - circum_x)) + ((v.y() - circum_y) * (v.y() - circum_y));
 
 	// debug
 	if(dist_sq <= circum_radius_sq) std::cout << sqrtf(circum_radius_sq) - sqrtf(dist_sq) << "\n";
@@ -41,7 +42,7 @@ bool circumCircleContains(PH::Facet_const_handle triangle, const Point &v) {
 bool rightOf(PH::Halfedge_const_handle e, const PH::Point &p) {
 	const Point &v = e->opposite()->vertex()->point();
 	const Point &w = e->vertex()->point();
-    float det = (p.x() - v.x())*(w.y() - v.y()) - (p.y() - v.y())*(w.x() - v.x());
+    Real det = (p.x() - v.x())*(w.y() - v.y()) - (p.y() - v.y())*(w.x() - v.x());
     return det > 0;
 }
 
@@ -54,6 +55,7 @@ PH::Halfedge_handle destPrev(PH::Halfedge_handle e){
 	PH::Halfedge_around_vertex_circulator iter = e->vertex_begin();
 	return next(iter);
 }
+
 
 
 #endif /* GEOMETRY_H_ */

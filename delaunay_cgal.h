@@ -10,7 +10,8 @@
 #include <CGAL/Simple_cartesian.h>
 #include <CGAL/Polyhedron_3.h>
 
-typedef CGAL::Simple_cartesian<double>		Kernel;
+typedef double								Real;
+typedef CGAL::Simple_cartesian<Real>		Kernel;
 typedef Kernel::Point_3						Point;
 typedef CGAL::Polyhedron_3<Kernel>			Polyhedron;
 typedef Polyhedron							PH;
@@ -58,7 +59,7 @@ class Delaunay_CGAL
 						std::cout << "Het punt (" << v->point().x() << ", " << v->point().y() << ") ligt in de driehoek bepaald door\n";
 						PH::Halfedge_handle e = f->halfedge();
 						for(int j = 0; j < 3; j++){
-							std::cout << "(" << std::to_string(e->vertex()->point().x()) << ", " << std::to_string((e++)->vertex()->point().y()) << ")\n";
+							// std::cout << "(" << std::to_string(e->vertex()->point().x()) << ", " << std::to_string((e++)->vertex()->point().y()) << ")\n";
 						}
 						return false;
 					}
@@ -109,31 +110,58 @@ class Delaunay_CGAL
 			}
 		}
 
-		const Polyhedron& triangulate(std::vector<Point> &vertices)
-		{
+		PH &triangulate(std::vector<Point> &points){
+			return stdBowyerWatson(points);
+		}
+
+		PH &stdBowyerWatson(std::vector<Point> &points){
+			initialize(points);
+			Point midCoordinates = Point(midx, midy, 0);
+			PH::Halfedge_handle startEdge = triangulation.halfedges_begin();
+			Point &startPoint = startEdge->vertex()->point();
+			Real minDist = CGAL::squared_distance(startPoint, midCoordinates);
+
+//			// debug
+//			std::cout << "Het middelste punt is (" << midCoordinates.x() << ", " << midCoordinates.y() << ")\n";
+//			std::cout << "De afstand is nu " << minDist << "\n";
+
+			for(auto p = begin(points); p != end(points); p++){
+				PH::Vertex_handle addedVertex = addVertex(*p, startEdge);
+				Real dist = CGAL::squared_distance(addedVertex->point(), midCoordinates);
+				if(dist < minDist){
+					minDist = dist;
+					startEdge = addedVertex->halfedge();
+//					std::cout << "Het nieuwe vertrekpunt is (" << addedVertex->point().x() << ", " << addedVertex->point().y() << ")\n";
+//					std::cout << "De afstand is nu " << minDist << "\n";
+				}
+			}
+			return finish();
+		}
+
+		void initialize(std::vector<Point> &points){
 			triangulation.clear();
 
 			// Determinate the super triangle
-            float minX = vertices[0].x();
-			float minY = vertices[0].y();
-			float maxX = minX;
-			float maxY = minY;
+			Real minX = points[0].x();
+			Real minY = points[0].y();
+			Real maxX = minX;
+			Real maxY = minY;
 
-			for(std::size_t i = 0; i < vertices.size(); ++i) 
+			for(std::size_t i = 0; i < points.size(); ++i)
 			{
-				if (vertices[i].x() < minX) minX = vertices[i].x();
-		    	if (vertices[i].y() < minY) minY = vertices[i].y();
-		    	if (vertices[i].x() > maxX) maxX = vertices[i].x();
-		    	if (vertices[i].y() > maxY) maxY = vertices[i].y();
+				if (points[i].x() < minX) minX = points[i].x();
+				if (points[i].y() < minY) minY = points[i].y();
+				if (points[i].x() > maxX) maxX = points[i].x();
+				if (points[i].y() > maxY) maxY = points[i].y();
 			}
 			
-			float dx = maxX - minX;
-			float dy = maxY - minY;
-			float deltaMax = std::max(dx, dy);
-			float midx = (minX + maxX) / 2.f;
-			float midy = (minY + maxY) / 2.f;
+			Real dx = maxX - minX;
+			Real dy = maxY - minY;
+			Real deltaMax = std::max(dx, dy);
+			midx = (minX + maxX) / 2.f;
+			midy = (minY + maxY) / 2.f;
 
-            //construct 3 edges of supertriangle
+			//construct 3 edges of supertriangle
 			Point p1(midx - 20 * deltaMax, midy - deltaMax, 0);
 			Point p2(midx, midy + 20 * deltaMax, 0);
 			Point p3(midx + 20 * deltaMax, midy - deltaMax, 0);
@@ -141,7 +169,6 @@ class Delaunay_CGAL
 			
 			// Create a list of triangles, and add the supertriangle in it
 			triangulation.make_triangle(p1, p2, p3);
-			PH::Vertex_handle superVertices[3];
 			PH::Vertex_iterator v_iter = triangulation.vertices_begin();
 			for(int i = 0; i < 3; i++)
 				superVertices[i] = v_iter++;
@@ -154,163 +181,119 @@ class Delaunay_CGAL
 			if(rightOf(internalEdge, internalEdge->next()->vertex()->point()))
 				triangulation.inside_out();
 
-			int numPoints=0;
-			for(auto p = begin(vertices); p != end(vertices); p++)
-			{
+		}
 
-				// debug
-				std::cout << numPoints++ << "\n";
-				if(numPoints % 400 == 0 && containsControlPoints())
-					throw std::runtime_error("Niet alle controlepunten zijn zorgvuldig verwijderd.");
-				if(numPoints % 400 == 0 && ! isDelaunay()){
-					throw std::runtime_error("Triangulatie is niet Delaunay.");
-				}
+		PH::Vertex_handle addVertex(Point &p, PH::Halfedge_handle startEdge)
+		{
+			std::vector<PH::Halfedge_handle> polygon;
+			std::vector<PH::Facet_handle> badTriangles;
 
-				print();
-				if (! isDelaunay()){
-					std::cout << "Vlak voor de toevoeging van punt nummer " << numPoints << " is het niet meer delaunay.\n";
-					return triangulation;
-				}
-
-				std::vector<PH::Halfedge_handle> polygon;
-				std::vector<PH::Facet_handle> badTriangles;
-
-				// vind de slechte driehoeken
-				PH::Halfedge_handle gs_edge = adjEdge(*p, triangulation);
-				std::vector<PH::Facet_handle> discoveredTriangles; // TODO: implementeer dit met een set (import werkt niet)
-				std::list<PH::Facet_handle> queue;
-				queue.push_back(gs_edge->facet());
-				while(!queue.empty()){
-					PH::Facet_handle current = queue.front();
-					queue.pop_front();
-					badTriangles.push_back(current);
-					discoveredTriangles.push_back(current);
-					PH::Halfedge_handle e = current->halfedge();
-					for(int i = 0; i < current->facet_degree(); i++){
-						e = e->next();
-						// plaats naburige driehoek op de queue als deze nog niet gevonden is
-						if(e->opposite()->is_border())
-							continue; // dit is geen driehoek
-						PH::Facet_handle neighbor = e->opposite()->facet();
-						bool alreadySeen = false;
-						for(int j =0; j < discoveredTriangles.size(); j++){
-							if(discoveredTriangles[j] == neighbor)
-								alreadySeen = true;
-						}
-						if(!alreadySeen && circumCircleContains(neighbor, *p)){
-							queue.push_back(neighbor);
-						}
+			// vind de slechte driehoeken
+			PH::Halfedge_handle gs_edge = adjEdge(p, startEdge);
+			std::vector<PH::Facet_handle> discoveredTriangles; // TODO: implementeer dit met een set (import werkt niet)
+			std::list<PH::Facet_handle> queue;
+			queue.push_back(gs_edge->facet());
+			while(!queue.empty()){
+				PH::Facet_handle current = queue.front();
+				queue.pop_front();
+				badTriangles.push_back(current);
+				discoveredTriangles.push_back(current);
+				PH::Halfedge_handle e = current->halfedge();
+				for(int i = 0; i < current->facet_degree(); i++){
+					e = e->next();
+					// plaats naburige driehoek op de queue als deze nog niet gevonden is
+					if(e->opposite()->is_border())
+						continue; // dit is geen driehoek
+					PH::Facet_handle neighbor = e->opposite()->facet();
+					bool alreadySeen = false;
+					for(int j =0; j < discoveredTriangles.size(); j++){
+						if(discoveredTriangles[j] == neighbor)
+							alreadySeen = true;
+					}
+					if(!alreadySeen && circumCircleContains(neighbor, p)){
+						queue.push_back(neighbor);
 					}
 				}
-				// construeer polygon
-
-				for(int i = 0; i < badTriangles.size(); i++){
-					PH::Halfedge_handle e = badTriangles[i]->facet_begin();
-					for(int j = 0; j < badTriangles[i]->facet_degree(); j++){
-						polygon.push_back(e);
-						e = e->next();
-					}
-				}
-
-
-				std::vector<PH::Halfedge_handle> polygon2;
-				std::vector<PH::Facet_handle> badTriangles2;
-				// TODO: maak dit efficienter met een wandeling + tree search
-				for(PH::Facet_handle t = triangulation.facets_begin(); t != triangulation.facets_end(); t++)
-				{
-
-                    if(circumCircleContains(t, *p))
-					{
-                        //if circumcircle of triangle t contains v then t is a bad triangle (i.e. a triangle that should be adjusted/removed.
-						badTriangles2.push_back(t);
-						PH::Halfedge_handle he = t->halfedge();
-						for(int i = 0; i < 3; i++){
-							polygon2.push_back(he);
-							he = he->next();
-						}
-					}
-					else
-					{
-						//std::cout << " does not contain " << *p << " in his circum center" << std::endl;
-					}
-				}
-
-				// markeer edges die wel en niet weg moeten
-				std::vector<PH::Halfedge_handle> goodEdges;
-				std::vector<PH::Halfedge_handle> badEdges;
-				bool isBad;
-				for(int i = 0; i < polygon.size(); i++){
-					PH::Halfedge_handle e1 = polygon[i];
-					isBad = false;
-					for(int j = 0; j < polygon.size(); j++){
-						PH::Halfedge_handle e2 = polygon[j];
-						if(e1->opposite() == e2)
-						{
-							// alle bogen die via twee verschillende driehoeken gevonden worden, moeten volledig weg (samen met hun tweeling)
-							isBad = true;
-							// TODO: Moet je wel een lijst met bad-edges bijhouden? Want je kunt ook gewoon alle halfedges uit
-							// de "slechte" driehoeken verwijderen.
-							badEdges.push_back(e1);
-						}
-					}
-					// alle bogen die maar via 1 driehoek gevonden worden, worden deel van een nieuwe driehoek die p zal bevatten
-					if(!isBad)
-						goodEdges.push_back(e1->opposite());
-				}
-
-				// Verwijder alle halfbogen van polygon uit de de triangulatie om zo een veelhoekig gat te maken.
-				// Voor elke (half)boog die verwijderd wordt, moet je er eerst voor zorgen dat er geen punten verwijderd
-				// worden door CGAL. Als je voor elke boog waarvan de tweeling een buitenrand is, een extra
-				// vlak toevoegt, *denk ik* dat je veilig zit, maar het is goed mogelijk dat dit eigenlijk teveel werk is.
-				std::vector<PH::Halfedge_handle> auxEdges;
-				for(int i = 0; i < goodEdges.size(); i++){
-					PH::Halfedge_handle e = goodEdges[i];
-					if(! e->is_border())
-						continue; // deze is niet in gevaar
-
-					// deze boog is aangrenzend aan een andere boog op de rand. Normaal gezien ligt de vorige boog op de
-					// rand, maar het zou kunnen (omwille van de volgorde van de bogen) dat je ook naar de volgende moet kijken
-					PH::Halfedge_handle otherBorder = e->prev();
-					if(!otherBorder->is_border())
-						throw std::runtime_error("Fout in de implementatie.");
-					PH::Halfedge_handle auxEdge = triangulation.add_vertex_and_facet_to_border(otherBorder, e);
-					Point &v = auxEdge->vertex()->point();
-					v = Point(v.x(), v.y(), 10);
-					auxEdges.push_back(auxEdge);
-				}
-				// Verwijder nu effectief alle halfbogen die weg moeten
-				for(int i = 0; i < badTriangles.size(); i++)
-					triangulation.erase_facet(badTriangles[i]->halfedge());
-
-				//print();
-
-
-//				// Voeg de nieuwe driehoeken toe met een punt in p
-				PH::Halfedge_handle he = goodEdges[0]->opposite(); // zou op de rand van het gat moeten liggen m.a.w. he->is_border()
-//				PH::Halfedge_handle edgeToP = triangulation.add_vertex_and_facet_to_border(he->prev(), he)->opposite();
-//				// dit verandert de waarde waar he naar wijst. he is nu een inwendige halfboog die vertrekt vanuit hetzelfde punt
-//				// en landt in p (om een of andere reden)
-//				edgeToP->vertex()->point() = *p; // he is nu deel van een driehoek
-//				for(int i = 0; i < goodEdges.size() - 2; i++)
-//					edgeToP = triangulation.add_vertex_and_facet_to_border(edgeToP->prev(), edgeToP->next())->opposite();
-
-				PH::Halfedge_handle newHE = triangulation.add_vertex_and_facet_to_border(he, he->next()); // e->next() (=e2) is verbonden met punt ergens gekozen door cgal
-				newHE->vertex()->point() = *p; // newhe = van e2->eindpunt naar newpoint
-				he = newHE->next()->opposite(); // e = ep
-				// Nu zijn er al 2 van de 3 bogen toegevoegd. Nog 3 - 2 = 1 te gaan.
-				for(int i = 0; i < goodEdges.size() - 2; i++){
-					he = triangulation.add_facet_to_border(he->prev()->prev(), he);
-					he = he->opposite();
-				}
-				// nu is er enkel nog een driehoekig gat dat moet opgevuld worden (zonder bogen toe te voegen)
-				triangulation.fill_hole(he);
-
-				// verwijder wat je met de hulpbogen had toegevoegd
-				for(int i = 0; i < auxEdges.size(); i++)
-					triangulation.erase_facet(auxEdges[i]);
-			
 			}
 
+			// construeer polygon
+			for(int i = 0; i < badTriangles.size(); i++){
+				PH::Halfedge_handle e = badTriangles[i]->facet_begin();
+				for(int j = 0; j < badTriangles[i]->facet_degree(); j++){
+					polygon.push_back(e);
+					e = e->next();
+				}
+			}
+
+			// markeer edges die wel en niet weg moeten
+			std::vector<PH::Halfedge_handle> goodEdges;
+			std::vector<PH::Halfedge_handle> badEdges;
+			bool isBad;
+			for(int i = 0; i < polygon.size(); i++){
+				PH::Halfedge_handle e1 = polygon[i];
+				isBad = false;
+				for(int j = 0; j < polygon.size(); j++){
+					PH::Halfedge_handle e2 = polygon[j];
+					if(e1->opposite() == e2)
+					{
+						// alle bogen die via twee verschillende driehoeken gevonden worden, moeten volledig weg (samen met hun tweeling)
+						isBad = true;
+						// TODO: Moet je wel een lijst met bad-edges bijhouden? Want je kunt ook gewoon alle halfedges uit
+						// de "slechte" driehoeken verwijderen.
+						badEdges.push_back(e1);
+					}
+				}
+				// alle bogen die maar via 1 driehoek gevonden worden, worden deel van een nieuwe driehoek die p zal bevatten
+				if(!isBad)
+					goodEdges.push_back(e1->opposite());
+			}
+
+			// Verwijder alle halfbogen van polygon uit de de triangulatie om zo een veelhoekig gat te maken.
+			// Voor elke (half)boog die verwijderd wordt, moet je er eerst voor zorgen dat er geen punten verwijderd
+			// worden door CGAL. Als je voor elke boog waarvan de tweeling een buitenrand is, een extra
+			// vlak toevoegt, *denk ik* dat je veilig zit, maar het is goed mogelijk dat dit eigenlijk teveel werk is.
+			std::vector<PH::Halfedge_handle> auxEdges;
+			for(int i = 0; i < goodEdges.size(); i++){
+				PH::Halfedge_handle e = goodEdges[i];
+				if(! e->is_border())
+					continue; // deze is niet in gevaar
+
+				// deze boog is aangrenzend aan een andere boog op de rand. Normaal gezien ligt de vorige boog op de
+				// rand, maar het zou kunnen (omwille van de volgorde van de bogen) dat je ook naar de volgende moet kijken
+				PH::Halfedge_handle otherBorder = e->prev();
+				if(!otherBorder->is_border())
+					throw std::runtime_error("Fout in de implementatie.");
+				PH::Halfedge_handle auxEdge = triangulation.add_vertex_and_facet_to_border(otherBorder, e);
+				Point &v = auxEdge->vertex()->point();
+				v = Point(v.x(), v.y(), 10);
+				auxEdges.push_back(auxEdge);
+			}
+			// Verwijder nu effectief alle halfbogen die weg moeten
+			for(int i = 0; i < badTriangles.size(); i++)
+				triangulation.erase_facet(badTriangles[i]->halfedge());
+
+			// Voeg de nieuwe driehoeken toe met een punt in p
+			PH::Halfedge_handle he = goodEdges[0]->opposite();
+			PH::Halfedge_handle newHE = triangulation.add_vertex_and_facet_to_border(he, he->next());
+			PH::Vertex_handle addedVertex = newHE->vertex();
+			addedVertex->point() = p; // newhe = van e2->eindpunt naar newpoint
+			he = newHE->next()->opposite(); // e = ep
+			// Nu zijn er al 2 van de 3 bogen toegevoegd. Nog 3 - 2 = 1 te gaan.
+			for(int i = 0; i < goodEdges.size() - 2; i++){
+				he = triangulation.add_facet_to_border(he->prev()->prev(), he);
+				he = he->opposite();
+			}
+			// nu is er enkel nog een driehoekig gat dat moet opgevuld worden (zonder bogen toe te voegen)
+			triangulation.fill_hole(he);
+
+			// verwijder wat je met de hulpbogen had toegevoegd
+			for(int i = 0; i < auxEdges.size(); i++)
+				triangulation.erase_facet(auxEdges[i]);
+
+			return addedVertex;
+		}
+
+		PH &finish(){
 			// verwijder de super-triangle en alle driehoeken die met de hoekpunten hiervan verbonden zijn
 			for(int i = 0; i < 3; i++){
 				PH::Vertex_handle v = superVertices[i];
@@ -322,15 +305,18 @@ class Delaunay_CGAL
 					triangulation.erase_facet(e++);
 			}
 
-			std::cout << "=====EINDRESULTAAT=====================\n";
-			print();
-			if (isDelaunay())
-				std::cout << "Deze is delaunay.\n";
+//			std::cout << "=====EINDRESULTAAT=====================\n";
+//			print();
+//			if (isDelaunay())
+//				std::cout << "Deze is delaunay.\n";
 			return triangulation;
 		}
 
 	private:
 		Polyhedron triangulation;
+		PH::Vertex_handle superVertices[3];
+		Real midx, midy;
+
 };
 
 #endif
