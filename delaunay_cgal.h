@@ -23,7 +23,10 @@ class Delaunay_CGAL
 			int V = triangulation.size_of_vertices();
 			int E = triangulation.size_of_halfedges() / 2;
 			int F = 1 + triangulation.size_of_facets();
-			return V - E + F == 2;
+			if (V - E + F == 2)
+				return true;
+			std::cout << "Euler faalt.";
+			return false;
 		}
 
 		bool isTriangulation(){
@@ -33,7 +36,10 @@ class Delaunay_CGAL
 			int numT = triangulation.size_of_facets();
 			int i = 0;
 			for(PH::Facet_handle f = triangulation.facets_begin(); i < numT; f++){
-				if(! f->is_triangle()) return false;
+				if(! f->is_triangle()) {
+					std::cout << "Geen triangulatie";
+					return false;
+				}
 				i++;
 			}
 			return true;
@@ -48,12 +54,25 @@ class Delaunay_CGAL
 				for(PH::Vertex_handle v = triangulation.vertices_begin(); v != triangulation.vertices_end(); v++){
 					if (f->halfedge()->vertex() == v || f->halfedge()->next()->vertex() == v || f->halfedge()->prev()->vertex() == v)
 						continue;
-					if (circumCircleContains(f, v->point()))
+					if (circumCircleContains(f, v->point())){
+						std::cout << "Het punt (" << v->point().x() << ", " << v->point().y() << ") ligt in de driehoek bepaald door\n";
+						PH::Halfedge_handle e = f->halfedge();
+						for(int j = 0; j < 3; j++){
+							std::cout << "(" << std::to_string(e->vertex()->point().x()) << ", " << std::to_string((e++)->vertex()->point().y()) << ")\n";
+						}
 						return false;
+					}
 				}
 				i++;
 			}
 			return true;
+		}
+
+		bool containsControlPoints(){
+			for(PH::Vertex_handle v = triangulation.vertices_begin(); v != triangulation.vertices_end(); v++){
+				if(v->point().z() != 0) return true;
+			}
+			return false;
 		}
 
 		void print(){
@@ -126,14 +145,17 @@ class Delaunay_CGAL
 			if(rightOf(internalEdge, internalEdge->next()->vertex()->point()))
 				triangulation.inside_out();
 
+			int numPoints=0;
 			for(auto p = begin(vertices); p != end(vertices); p++)
 			{
 
-//				std::cout << "adding point " << p->x() << ", " << p->y() << "\n\n";
-//				if(! isDelaunay()){
-//					throw std::runtime_error("Geen delaunay-triangulatie");
-//					return triangulation;
-//				}
+				// debug
+				std::cout << ++numPoints << "\n";
+				if(numPoints % 400 == 0 && containsControlPoints())
+					throw std::runtime_error("Niet alle controlepunten zijn zorgvuldig verwijderd.");
+				if(numPoints % 400 == 0 && ! isDelaunay()){
+					throw std::runtime_error("Triangulatie is niet Delaunay.");
+				}
 
 				std::vector<PH::Halfedge_handle> polygon;
 				std::vector<PH::Facet_handle> badTriangles;

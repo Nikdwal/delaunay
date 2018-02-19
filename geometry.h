@@ -1,6 +1,7 @@
 #ifndef GEOMETRY_H_
 #define GEOMETRY_H_
 
+#include <iostream>
 #include <CGAL/Simple_cartesian.h>
 #include <CGAL/Polyhedron_3.h>
 
@@ -29,6 +30,10 @@ bool circumCircleContains(PH::Facet_const_handle triangle, const Point &v) {
 	float circum_radius_sq = ((p[0].x() - circum_x) * (p[0].x() - circum_x)) + ((p[0].y() - circum_y) * (p[0].y() - circum_y));
 
 	float dist_sq = ((v.x() - circum_x) * (v.x() - circum_x)) + ((v.y() - circum_y) * (v.y() - circum_y));
+
+	// debug
+	if(dist_sq <= circum_radius_sq) std::cout << sqrtf(circum_radius_sq) - sqrtf(dist_sq) << "\n";
+
 	return dist_sq <= circum_radius_sq;
 }
 

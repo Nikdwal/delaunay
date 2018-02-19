@@ -42,7 +42,7 @@ int main()
     //--> door argument time(NULL) mee te geven wordt verzekerd dat het telkens andere getallen zijn)
 	srand (time(NULL));
 	
-    float numberPoints = 3000;
+    float numberPoints = 5200;
 //    float numberPoints = roundf(RandomFloat(4, 40));
 
 //	std::cout << "Generating " << numberPoints << " random points" << std::endl;
