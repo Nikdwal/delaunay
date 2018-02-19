@@ -11,7 +11,8 @@
 #include <CGAL/Simple_cartesian.h>
 #include <CGAL/Polyhedron_3.h>
 
-typedef CGAL::Simple_cartesian<double>		Kernel;
+typedef double								Real;
+typedef CGAL::Simple_cartesian<Real>		Kernel;
 typedef Kernel::Point_3						Point;
 typedef CGAL::Polyhedron_3<Kernel>			PH;
 
@@ -27,10 +28,10 @@ typedef CGAL::Polyhedron_3<Kernel>			PH;
 * Genereert random getal tussen meegegeven waarden a en b 
 * (Gaat er van uit dat a < b!)
 */
-float RandomFloat(float a, float b) {
-    float random = ((float) rand()) / (float) RAND_MAX;
-    float diff = b - a;
-    float r = random * diff;
+Real RandomReal(Real a, Real b) {
+    Real random = (Real) rand() / RAND_MAX;
+    Real diff = b - a;
+    Real r = random * diff;
     return a + r;
 }
 
@@ -42,30 +43,29 @@ int main()
     //--> door argument time(NULL) mee te geven wordt verzekerd dat het telkens andere getallen zijn)
 	srand (time(NULL));
 	
-//    float numberPoints = 5200;
-//    float numberPoints = roundf(RandomFloat(4, 40));
+    Real numberPoints = 100000;
 
 //	std::cout << "Generating " << numberPoints << " random points" << std::endl;
 
     /*
     * Genereer de punten
     */
-	std::vector<Point> points; //std::vector is een dynamische lijst
+	std::vector<Kernel::Point_2> points; //std::vector is een dynamische lijst
 	
-//    for(int i = 0; i < numberPoints; i++) {
-//		points.push_back(Point(RandomFloat(0, 800), RandomFloat(0, 600), 0)); //push_back voegt punt toe aan einde lijst
-//	}
+    for(int i = 0; i < numberPoints; i++) {
+		points.push_back(Kernel::Point_2(RandomReal(0, 800), RandomReal(0, 600))); //push_back voegt punt toe aan einde lijst
+	}
     
-    points.push_back(Point(100.0, 200.0, 0));
-    points.push_back(Point(200.0, 400.0, 0));
-    points.push_back(Point(300.0, 100.0, 0));
-    points.push_back(Point(400.0, 500.0, 0));
-    points.push_back(Point(500.0, 300.0, 0));
+//    points.push_back(Point(100.0, 200.0, 0));
+//    points.push_back(Point(200.0, 400.0, 0));
+//    points.push_back(Point(300.0, 100.0, 0));
+//    points.push_back(Point(400.0, 500.0, 0));
+//    points.push_back(Point(500.0, 300.0, 0));
 
 	Delaunay_CGAL triangulator;
 
     auto t1 = std::chrono::high_resolution_clock::now();
-	PH tri = triangulator.triangulate(points);
+	PH tri = triangulator.hilbert(points);
     auto t2 = std::chrono::high_resolution_clock::now();
 
 	std::cout << tri.size_of_facets() << " triangles generated\n";

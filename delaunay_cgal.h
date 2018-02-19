@@ -9,6 +9,7 @@
 #include <algorithm>
 #include <CGAL/Simple_cartesian.h>
 #include <CGAL/Polyhedron_3.h>
+#include <CGAL/hilbert_sort.h>
 
 typedef double								Real;
 typedef CGAL::Simple_cartesian<Real>		Kernel;
@@ -121,20 +122,28 @@ class Delaunay_CGAL
 			Point &startPoint = startEdge->vertex()->point();
 			Real minDist = CGAL::squared_distance(startPoint, midCoordinates);
 
-//			// debug
-//			std::cout << "Het middelste punt is (" << midCoordinates.x() << ", " << midCoordinates.y() << ")\n";
-//			std::cout << "De afstand is nu " << minDist << "\n";
-
 			for(auto p = begin(points); p != end(points); p++){
 				PH::Vertex_handle addedVertex = addVertex(*p, startEdge);
 				Real dist = CGAL::squared_distance(addedVertex->point(), midCoordinates);
 				if(dist < minDist){
 					minDist = dist;
 					startEdge = addedVertex->halfedge();
-//					std::cout << "Het nieuwe vertrekpunt is (" << addedVertex->point().x() << ", " << addedVertex->point().y() << ")\n";
-//					std::cout << "De afstand is nu " << minDist << "\n";
 				}
 			}
+			return finish();
+		}
+
+		PH &hilbert(std::vector<Kernel::Point_2> &points){
+			CGAL::hilbert_sort(points.begin(), points.end());
+			std::vector<Point> points3;
+			for(auto p = begin(points); p != end(points); p++)
+				points3.push_back(Point(p->x(), p->y(), 0));
+
+			initialize(points3);
+			PH::Halfedge_handle startEdge = triangulation.halfedges_begin();
+			for(auto p = begin(points3); p != end(points3); p++)
+				startEdge = addVertex(*p, startEdge)->halfedge();
+
 			return finish();
 		}
 
