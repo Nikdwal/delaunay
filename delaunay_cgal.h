@@ -100,6 +100,15 @@ class Delaunay_CGAL
 			return s;
 		}
 
+		std::string triStr(PH::Facet_handle t){
+			std::string s = "";
+			PH::Halfedge_handle e = t->halfedge();
+			for(int i = 0; i < 3; i ++){
+				s += eStr(e);
+				e = e->next();
+			}
+		}
+
 		const Polyhedron& triangulate(std::vector<Point> &vertices)
 		{
 			triangulation.clear();
@@ -150,32 +159,73 @@ class Delaunay_CGAL
 			{
 
 				// debug
-				std::cout << ++numPoints << "\n";
+				std::cout << numPoints++ << "\n";
 				if(numPoints % 400 == 0 && containsControlPoints())
 					throw std::runtime_error("Niet alle controlepunten zijn zorgvuldig verwijderd.");
 				if(numPoints % 400 == 0 && ! isDelaunay()){
 					throw std::runtime_error("Triangulatie is niet Delaunay.");
 				}
 
+				print();
+				if (! isDelaunay()){
+					std::cout << "Vlak voor de toevoeging van punt nummer " << numPoints << " is het niet meer delaunay.\n";
+					return triangulation;
+				}
+
 				std::vector<PH::Halfedge_handle> polygon;
 				std::vector<PH::Facet_handle> badTriangles;
 
-				// debug
+				// vind de slechte driehoeken
 				PH::Halfedge_handle gs_edge = adjEdge(*p, triangulation);
-				if(!circumCircleContains(gs_edge->facet(), *p))
-					throw std::runtime_error("gs walk is fout");
+				std::vector<PH::Facet_handle> discoveredTriangles; // TODO: implementeer dit met een set (import werkt niet)
+				std::list<PH::Facet_handle> queue;
+				queue.push_back(gs_edge->facet());
+				while(!queue.empty()){
+					PH::Facet_handle current = queue.front();
+					queue.pop_front();
+					badTriangles.push_back(current);
+					discoveredTriangles.push_back(current);
+					PH::Halfedge_handle e = current->halfedge();
+					for(int i = 0; i < current->facet_degree(); i++){
+						e = e->next();
+						// plaats naburige driehoek op de queue als deze nog niet gevonden is
+						if(e->opposite()->is_border())
+							continue; // dit is geen driehoek
+						PH::Facet_handle neighbor = e->opposite()->facet();
+						bool alreadySeen = false;
+						for(int j =0; j < discoveredTriangles.size(); j++){
+							if(discoveredTriangles[j] == neighbor)
+								alreadySeen = true;
+						}
+						if(!alreadySeen && circumCircleContains(neighbor, *p)){
+							queue.push_back(neighbor);
+						}
+					}
+				}
+				// construeer polygon
 
+				for(int i = 0; i < badTriangles.size(); i++){
+					PH::Halfedge_handle e = badTriangles[i]->facet_begin();
+					for(int j = 0; j < badTriangles[i]->facet_degree(); j++){
+						polygon.push_back(e);
+						e = e->next();
+					}
+				}
+
+
+				std::vector<PH::Halfedge_handle> polygon2;
+				std::vector<PH::Facet_handle> badTriangles2;
 				// TODO: maak dit efficienter met een wandeling + tree search
 				for(PH::Facet_handle t = triangulation.facets_begin(); t != triangulation.facets_end(); t++)
 				{
-                
+
                     if(circumCircleContains(t, *p))
 					{
                         //if circumcircle of triangle t contains v then t is a bad triangle (i.e. a triangle that should be adjusted/removed.
-						badTriangles.push_back(t);
+						badTriangles2.push_back(t);
 						PH::Halfedge_handle he = t->halfedge();
 						for(int i = 0; i < 3; i++){
-							polygon.push_back(he);
+							polygon2.push_back(he);
 							he = he->next();
 						}
 					}
@@ -258,8 +308,6 @@ class Delaunay_CGAL
 				// verwijder wat je met de hulpbogen had toegevoegd
 				for(int i = 0; i < auxEdges.size(); i++)
 					triangulation.erase_facet(auxEdges[i]);
-
-				// print();
 			
 			}
 
@@ -274,6 +322,10 @@ class Delaunay_CGAL
 					triangulation.erase_facet(e++);
 			}
 
+			std::cout << "=====EINDRESULTAAT=====================\n";
+			print();
+			if (isDelaunay())
+				std::cout << "Deze is delaunay.\n";
 			return triangulation;
 		}
 

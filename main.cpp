@@ -42,7 +42,7 @@ int main()
     //--> door argument time(NULL) mee te geven wordt verzekerd dat het telkens andere getallen zijn)
 	srand (time(NULL));
 	
-    float numberPoints = 5200;
+//    float numberPoints = 5200;
 //    float numberPoints = roundf(RandomFloat(4, 40));
 
 //	std::cout << "Generating " << numberPoints << " random points" << std::endl;
@@ -52,9 +52,9 @@ int main()
     */
 	std::vector<Point> points; //std::vector is een dynamische lijst
 	
-    for(int i = 0; i < numberPoints; i++) {
-		points.push_back(Point(RandomFloat(0, 800), RandomFloat(0, 600), 0)); //push_back voegt punt toe aan einde lijst
-	}
+//    for(int i = 0; i < numberPoints; i++) {
+//		points.push_back(Point(RandomFloat(0, 800), RandomFloat(0, 600), 0)); //push_back voegt punt toe aan einde lijst
+//	}
     
     points.push_back(Point(100.0, 200.0, 0));
     points.push_back(Point(200.0, 400.0, 0));
