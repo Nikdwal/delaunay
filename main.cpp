@@ -55,15 +55,15 @@ int main()
 
 	std::ofstream file;
 	file.open ("metingen.csv");
-	int numReruns = 5;
+	int numReruns = 7;
 	int step = 5000;
 	file << "points, bw, hilbert, xsort" << std::endl;
-	for(int numberPoints = step; numberPoints <= 3*step; numberPoints += step){
+	for(int numberPoints = step; numberPoints <= 30*step; numberPoints += step){
 		for(int k = 0; k < numReruns; k++){
 			Delaunay_CGAL triangulator; // om een of andere reden blijft bw hangen als je niet steeds een nieuwe triangulator maakt
 			std::vector<Point> points, hilbertCopy, xSortCopy;
 			for(int j = 0; j < numberPoints; j++) {
-				points.push_back(Point(RandomReal(0, 800), RandomReal(0, 600), 0)); //push_back voegt punt toe aan einde lijst
+				points.push_back(Point(RandomReal(0, 1), RandomReal(0, 1), 0)); //push_back voegt punt toe aan einde lijst
 			}
 			// zorg dat de triangulator geen structuur aanbrengt in de invoer van de volgende
 			hilbertCopy = points;
@@ -73,6 +73,7 @@ int main()
 			long int xSortTime   = toMicroseconds(triangulator.xSort(xSortCopy));
 
 			file << numberPoints << ", " << BWTime << ", " << hilbertTime << ", " << xSortTime << std::endl;
+			std::cout << numberPoints << ", " << BWTime << ", " << hilbertTime << ", " << xSortTime << std::endl;
 		}
 	}
 	file.close();
