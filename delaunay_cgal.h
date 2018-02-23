@@ -14,8 +14,10 @@
 typedef double								Real;
 typedef CGAL::Simple_cartesian<Real>		Kernel;
 typedef Kernel::Point_3						Point;
+typedef Kernel::Point_2						Point2;
 typedef CGAL::Polyhedron_3<Kernel>			Polyhedron;
 typedef Polyhedron							PH;
+typedef std::chrono::high_resolution_clock	Clock;
 
 class Delaunay_CGAL
 {
@@ -25,10 +27,7 @@ class Delaunay_CGAL
 			int V = triangulation.size_of_vertices();
 			int E = triangulation.size_of_halfedges() / 2;
 			int F = 1 + triangulation.size_of_facets();
-			if (V - E + F == 2)
-				return true;
-			std::cout << "Euler faalt.";
-			return false;
+			return V - E + F == 2;
 		}
 
 		bool isTriangulation(){
@@ -39,7 +38,6 @@ class Delaunay_CGAL
 			int i = 0;
 			for(PH::Facet_handle f = triangulation.facets_begin(); i < numT; f++){
 				if(! f->is_triangle()) {
-					std::cout << "Geen triangulatie";
 					return false;
 				}
 				i++;
@@ -111,11 +109,14 @@ class Delaunay_CGAL
 			}
 		}
 
-		PH &triangulate(std::vector<Point> &points){
-			return stdBowyerWatson(points);
+		PH triangulate(std::vector<Point> &points){
+			stdBowyerWatson(points);
+			return triangulation;
 		}
 
-		PH &stdBowyerWatson(std::vector<Point> &points){
+		Clock::duration stdBowyerWatson(std::vector<Point> &points){
+			Clock::time_point tik = Clock::now();
+
 			initialize(points);
 			Point midCoordinates = Point(midx, midy, 0);
 			PH::Halfedge_handle startEdge = triangulation.halfedges_begin();
@@ -130,21 +131,58 @@ class Delaunay_CGAL
 					startEdge = addedVertex->halfedge();
 				}
 			}
-			return finish();
+			finish();
+
+			Clock::time_point tak = Clock::now();
+			return tak - tik;
 		}
 
-		PH &hilbert(std::vector<Kernel::Point_2> &points){
-			CGAL::hilbert_sort(points.begin(), points.end());
-			std::vector<Point> points3;
-			for(auto p = begin(points); p != end(points); p++)
-				points3.push_back(Point(p->x(), p->y(), 0));
+		Clock::duration hilbert(std::vector<Point> &points){
 
-			initialize(points3);
+			// Zuiver overhead omwille van conversie Point2<->Point3. Dit moet je niet timen, want dit
+			// komt gewoon door het gebruik van de libraries
+			std::vector<Point2> points2;
+			for(auto p = begin(points); p != end(points); p++)
+				points2.push_back(Point2(p->x(), p->y()));
+
+			Clock::time_point tik = Clock::now();
+			CGAL::hilbert_sort(points2.begin(), points2.end());
+			Clock::time_point tak = Clock::now();
+
+			//std::vector<Point> points3;
+			for(int i = 0; i < points.size(); i++)
+				points[i] = Point(points2[i].x(), points2[i].y(), 0);
+
+			Clock::time_point tok = Clock::now();
+			initialize(points);
 			PH::Halfedge_handle startEdge = triangulation.halfedges_begin();
-			for(auto p = begin(points3); p != end(points3); p++)
+			for(auto p = begin(points); p != end(points); p++)
 				startEdge = addVertex(*p, startEdge)->halfedge();
 
-			return finish();
+			finish();
+			Clock::time_point tek = Clock::now();
+			return (tak - tik) + (tek - tok);
+		}
+
+		Clock::duration xSort(std::vector<Point> &points){
+			struct comparator {
+			  bool operator() (Point &v, Point &w) { return (v.x() < w.x());}
+			} compare;
+
+
+			Clock::time_point tik = Clock::now();
+
+			std::sort(points.begin(), points.end(), compare);
+
+			initialize(points);
+			PH::Halfedge_handle startEdge = triangulation.halfedges_begin();
+			for(auto p = begin(points); p != end(points); p++)
+				startEdge = addVertex(*p, startEdge)->halfedge();
+
+			finish();
+
+			Clock::time_point tak = Clock::now();
+			return tak - tik;
 		}
 
 		void initialize(std::vector<Point> &points){
@@ -303,6 +341,9 @@ class Delaunay_CGAL
 		}
 
 		PH &finish(){
+			// TODO: verwijder<< " Hilbert: " << hilbertTime
+			return triangulation;
+
 			// verwijder de super-triangle en alle driehoeken die met de hoekpunten hiervan verbonden zijn
 			for(int i = 0; i < 3; i++){
 				PH::Vertex_handle v = superVertices[i];

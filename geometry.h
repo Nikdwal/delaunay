@@ -33,7 +33,7 @@ bool circumCircleContains(PH::Facet_const_handle triangle, const Point &v) {
 	Real dist_sq = ((v.x() - circum_x) * (v.x() - circum_x)) + ((v.y() - circum_y) * (v.y() - circum_y));
 
 	// debug
-	if(dist_sq <= circum_radius_sq) std::cout << sqrtf(circum_radius_sq) - sqrtf(dist_sq) << "\n";
+//	if(dist_sq <= circum_radius_sq) std::cout << sqrtf(circum_radius_sq) - sqrtf(dist_sq) << "\n";
 
 	return dist_sq <= circum_radius_sq;
 }

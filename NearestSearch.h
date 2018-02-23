@@ -7,7 +7,8 @@
 #include <CGAL/Simple_cartesian.h>
 #include <CGAL/Polyhedron_3.h>
 
-typedef CGAL::Simple_cartesian<double>		Kernel;
+typedef double								Real;
+typedef CGAL::Simple_cartesian<Real>		Kernel;
 typedef Kernel::Point_3						Point;
 typedef CGAL::Polyhedron_3<Kernel>			PH;
 

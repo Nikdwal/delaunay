@@ -6,6 +6,7 @@
 #include <stdlib.h>  
 #include <array>
 #include <chrono>
+#include <fstream>
 
 #include <SFML/Graphics.hpp>
 #include <CGAL/Simple_cartesian.h>
@@ -15,6 +16,8 @@ typedef double								Real;
 typedef CGAL::Simple_cartesian<Real>		Kernel;
 typedef Kernel::Point_3						Point;
 typedef CGAL::Polyhedron_3<Kernel>			PH;
+typedef std::chrono::high_resolution_clock	Clock;
+typedef Clock::duration						Duration;
 
 #include "delaunay_cgal.h"
 
@@ -35,6 +38,10 @@ Real RandomReal(Real a, Real b) {
     return a + r;
 }
 
+long int toMicroseconds(Duration dt){
+	return std::chrono::duration_cast<std::chrono::microseconds>(dt).count();
+}
+
 int main()
 {
 
@@ -43,103 +50,53 @@ int main()
     //--> door argument time(NULL) mee te geven wordt verzekerd dat het telkens andere getallen zijn)
 	srand (time(NULL));
 	
-    Real numberPoints = 100000;
 
 //	std::cout << "Generating " << numberPoints << " random points" << std::endl;
 
-    /*
-    * Genereer de punten
-    */
-	std::vector<Kernel::Point_2> points; //std::vector is een dynamische lijst
-	
-    for(int i = 0; i < numberPoints; i++) {
-		points.push_back(Kernel::Point_2(RandomReal(0, 800), RandomReal(0, 600))); //push_back voegt punt toe aan einde lijst
+	std::ofstream file;
+	file.open ("metingen.csv");
+	int numReruns = 5;
+	int step = 5000;
+	file << "points, bw, hilbert, xsort" << std::endl;
+	for(int numberPoints = step; numberPoints <= 3*step; numberPoints += step){
+		for(int k = 0; k < numReruns; k++){
+			Delaunay_CGAL triangulator; // om een of andere reden blijft bw hangen als je niet steeds een nieuwe triangulator maakt
+			std::vector<Point> points, hilbertCopy, xSortCopy;
+			for(int j = 0; j < numberPoints; j++) {
+				points.push_back(Point(RandomReal(0, 800), RandomReal(0, 600), 0)); //push_back voegt punt toe aan einde lijst
+			}
+			// zorg dat de triangulator geen structuur aanbrengt in de invoer van de volgende
+			hilbertCopy = points;
+			xSortCopy   = points;
+			long int BWTime      = toMicroseconds(triangulator.stdBowyerWatson(points));
+			long int hilbertTime = toMicroseconds(triangulator.hilbert(hilbertCopy));
+			long int xSortTime   = toMicroseconds(triangulator.xSort(xSortCopy));
+
+			file << numberPoints << ", " << BWTime << ", " << hilbertTime << ", " << xSortTime << std::endl;
+		}
 	}
-    
+	file.close();
+
+//	std::vector<Point> points;
+//	for(int i = 0; i < 20000; i++){
+//		points.push_back(Point(RandomReal(0, 800), RandomReal(0, 600), 0)); //push_back voegt punt toe aan einde lijst
+//	}
+//	std::cout << toMicroseconds(triangulator.stdBowyerWatson(points)) << std::endl;
+
+
+
 //    points.push_back(Point(100.0, 200.0, 0));
 //    points.push_back(Point(200.0, 400.0, 0));
 //    points.push_back(Point(300.0, 100.0, 0));
 //    points.push_back(Point(400.0, 500.0, 0));
 //    points.push_back(Point(500.0, 300.0, 0));
 
-	Delaunay_CGAL triangulator;
-
-    auto t1 = std::chrono::high_resolution_clock::now();
-	PH tri = triangulator.hilbert(points);
-    auto t2 = std::chrono::high_resolution_clock::now();
-
-	std::cout << tri.size_of_facets() << " triangles generated\n";
-	//std::vector<Edge> edges = triangulator.getEdges();
-	
-	std::cout << " ========= ";
-	
-	std::cout << "\nPoints : " << points.size() << std::endl;
-	for(auto &p : points)
-		std::cout << p << std::endl;
-	
-	if(points.size() != tri.size_of_vertices())
-		throw std::runtime_error("Triangulated the wrong number of points.");
-
-//	std::cout << "\nTriangles : " << tri.size_of_facets() << std::endl;
-//	for(auto &t : triangles)
-//		std::cout << t << std::endl;
 //
-//	std::cout << "\nEdges : " << edges.size() << std::endl;
-//	for(auto &e : edges)
-//		std::cout << e << std::endl;
+//
+//	auto int_ns = std::chrono::duration_cast<std::chrono::nanoseconds>(triangulator.hilbert(points));
+//
+//    std::cout << "Triangulation took " << ((double) int_ns.count()) / 1e0 << "ns" << std::endl;
 
-    auto int_ms = std::chrono::duration_cast<std::chrono::milliseconds>(t2 - t1);
-
-    std::cout << "Triangulation took " << int_ms.count() << "ms" << std::endl;
-
-//    triangulator.print();
-
-    /*
-	// SFML window
-    	sf::RenderWindow window(sf::VideoMode(800, 600), "Delaunay triangulation");
-
-	// Transform each points of each vector as a rectangle
-	std::vector<sf::RectangleShape*> squares;
-
-	for(auto p = begin(points); p != end(points); p++) {
-		sf::RectangleShape *c1 = new sf::RectangleShape(sf::Vector2f(4, 4));
-		c1->setPosition(p->x(), p->y());
-		squares.push_back(c1);
-	}
-	
-	// Make the lines
-	std::vector<std::array<sf::Vertex, 2> > lines;
-	for(auto e = tri.halfedges_begin(); e != tri.halfedges_end(); e++) {
-		lines.push_back({{
-			sf::Vertex(sf::Vector2f(e->vertex()->point().x() + 2, e->vertex()->point().y() + 2)),
-			sf::Vertex(sf::Vector2f(e->opposite()->vertex()->point().x() + 2, e->opposite()->vertex()->point().y()))
-		}});
-	}
- 
-	while (window.isOpen())
-	{
-	        sf::Event event;
-	        while (window.pollEvent(event))
-	        {
-	            if (event.type == sf::Event::Closed)
-	                window.close();
-	        }
-	
-	        window.clear();
-	
-		// Draw the squares
-		for(auto s = begin(squares); s != end(squares); s++) {
-			window.draw(**s);
-		}
-	
-		// Draw the lines
-		for(auto l = begin(lines); l != end(lines); l++) {
-			window.draw((*l).data(), 2, sf::Lines);
-		}
-	       	
-		window.display();
-	}
-	*/
 	
 
 
