@@ -185,6 +185,39 @@ class Delaunay_CGAL
 			return tak - tik;
 		}
 
+		// Zoals de gewone ordening met stijgende x, maar neem als startpunt
+		// van de wandeling het meest rechtse punt van de supertriangle
+		Clock::duration xSortRightmost(std::vector<Point> &points){
+			struct comparator {
+			  bool operator() (Point &v, Point &w) { return (v.x() < w.x());}
+			} compare;
+
+			Clock::time_point tik = Clock::now();
+
+			std::sort(points.begin(), points.end(), compare);
+
+			initialize(points);
+
+			Real maxX = 0;
+			PH::Vertex_handle maxV;
+			for(int i = 0; i < 3; i++){
+				if(superVertices[i]->point().x() > maxX){
+					maxX = superVertices[i]->point().x();
+					maxV = superVertices[i];
+				}
+			}
+
+			PH::Halfedge_handle startEdge = triangulation.halfedges_begin();
+			for(auto p = begin(points); p != end(points); p++)
+				// neem steeds een boog verbonden met het meest rechtse punt van de superdriehoek
+				addVertex(*p, maxV->halfedge());
+
+			finish();
+
+			Clock::time_point tak = Clock::now();
+			return tak - tik;
+		}
+
 		void initialize(std::vector<Point> &points){
 			triangulation.clear();
 
@@ -232,12 +265,14 @@ class Delaunay_CGAL
 
 		PH::Vertex_handle addVertex(Point &p, PH::Halfedge_handle startEdge)
 		{
+			// blijkbaar is het trager als je van polygon en discoveredTriangles sets maakt.
+
 			std::vector<PH::Halfedge_handle> polygon;
 			std::vector<PH::Facet_handle> badTriangles;
 
 			// vind de slechte driehoeken
 			PH::Halfedge_handle gs_edge = adjEdge(p, startEdge);
-			std::vector<PH::Facet_handle> discoveredTriangles; // TODO: implementeer dit met een set (import werkt niet)
+			std::vector<PH::Facet_handle> discoveredTriangles;
 			std::list<PH::Facet_handle> queue;
 			queue.push_back(gs_edge->facet());
 			while(!queue.empty()){
@@ -287,7 +322,7 @@ class Delaunay_CGAL
 						isBad = true;
 						// TODO: Moet je wel een lijst met bad-edges bijhouden? Want je kunt ook gewoon alle halfedges uit
 						// de "slechte" driehoeken verwijderen.
-						badEdges.push_back(e1);
+//						badEdges.push_back(e1);
 					}
 				}
 				// alle bogen die maar via 1 driehoek gevonden worden, worden deel van een nieuwe driehoek die p zal bevatten
@@ -308,11 +343,11 @@ class Delaunay_CGAL
 				// deze boog is aangrenzend aan een andere boog op de rand. Normaal gezien ligt de vorige boog op de
 				// rand, maar het zou kunnen (omwille van de volgorde van de bogen) dat je ook naar de volgende moet kijken
 				PH::Halfedge_handle otherBorder = e->prev();
-				if(!otherBorder->is_border())
-					throw std::runtime_error("Fout in de implementatie.");
+//				if(!otherBorder->is_border())
+//					throw std::runtime_error("Fout in de implementatie.");
 				PH::Halfedge_handle auxEdge = triangulation.add_vertex_and_facet_to_border(otherBorder, e);
-				Point &v = auxEdge->vertex()->point();
-				v = Point(v.x(), v.y(), 10);
+//				Point &v = auxEdge->vertex()->point();
+//				v = Point(v.x(), v.y(), 10);
 				auxEdges.push_back(auxEdge);
 			}
 			// Verwijder nu effectief alle halfbogen die weg moeten

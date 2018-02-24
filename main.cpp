@@ -74,15 +74,19 @@ int main()
 
 			file << numberPoints << ", " << BWTime << ", " << hilbertTime << ", " << xSortTime << std::endl;
 			std::cout << numberPoints << ", " << BWTime << ", " << hilbertTime << ", " << xSortTime << std::endl;
+
+			usleep(4e6);
 		}
 	}
 	file.close();
 
+//	Delaunay_CGAL triangulator;
 //	std::vector<Point> points;
-//	for(int i = 0; i < 20000; i++){
+//	for(int i = 0; i < 2000; i++){
 //		points.push_back(Point(RandomReal(0, 800), RandomReal(0, 600), 0)); //push_back voegt punt toe aan einde lijst
 //	}
-//	std::cout << toMicroseconds(triangulator.stdBowyerWatson(points)) << std::endl;
+//	triangulator.triangulate(points);
+//	std::cout << "sucess\n";
 
 
 
