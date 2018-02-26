@@ -12,6 +12,10 @@ typedef CGAL::Simple_cartesian<Real>		Kernel;
 typedef Kernel::Point_3						Point;
 typedef CGAL::Polyhedron_3<Kernel>			PH;
 
+/*
+*   Neemt een halfedge e en geeft deze weer als een string van de vorm:
+*   "Start: (x1, y1, z1) \n End(x2, y2, z2)"
+*/
 std::string es(PH::Halfedge_handle e){
 	std::string s = "";
 	s += "Start: (";
@@ -30,6 +34,10 @@ std::string es(PH::Halfedge_handle e){
 	return s;
 }
 
+/*
+*   Neemt een punt p en geeft dit weer als een string van de vorm:
+*   "(x, y, z)"
+*/
 std::string ps(Point &p){
 	std::string s = "";
 	s += "(";
@@ -43,6 +51,11 @@ std::string ps(Point &p){
 }
 
 // algoritme van Guibas-Stolfi voor lokalisatie
+/*
+*   Neemt een punt p en een halfedge startEdge en berekent halfedge e door te wandelen over 
+*   de reeds bepaalde delaunay triangulatie.
+*   Geeft de halfedge terug waarop p ligt of die p links van zich heeft liggen.
+*/
 PH::Halfedge_handle adjEdge(const Point &p, PH::Halfedge_handle startEdge){
 	PH::Halfedge_handle e = startEdge;
 	while(true){
@@ -59,54 +72,13 @@ PH::Halfedge_handle adjEdge(const Point &p, PH::Halfedge_handle startEdge){
 	}
 }
 
-PH::Halfedge_handle adjEdge(const Point &p, PH &triangulation){
-	// TODO: dit kun je nog wijzigen, bv. naar het middelste punt
-	return adjEdge(p, triangulation.halfedges_begin());
+/*
+*   Neemt een punt p en een triangulatie triangulation en berekent halfedge waarop p ligt
+*   of de halfedge die p links van zich heeft liggen door de methode adjEdge(Point p, Halfedge e)
+*   op te roepen.
+*/
+PH::Halfedge_handle adjEdge(const Point &p, PH &triangulation) {
+    // TODO: dit kun je nog wijzigen, bv. naar het middelste punt
+    return adjEdge(p, triangulation.halfedges_begin());
 }
-
-// TODO: ik denk dat je na het zoeken van deze boog gewoon de driehoek kan teruggeven
-// in plaats van een van de vertices van deze gevonden boog. Dit is immers het punt waarop
-// GS en BW van elkaar beginnen te verschillen.
-
-//
-//Edge getClosestEdge(const Vertex &p, const std::vector<Triangle> triangleList) {
-//    Triangle t = triangleList.at(0);   // TODO: middenste punt nemen als startpunt of eindpunt hilbert
-//    Edge e = t.getEdge();
-//
-//    bool flag = true;
-//    while (flag) {
-//        if (p == e.getOrigin() || p == e.getDestination()) {
-//            return e;
-//        }
-//        else if (e.rightOf(p)) {
-//            e = e.getSym();
-//        }
-//        else if (!(t.getOrgNext(e)).rightOf(p)) {
-//            e = t.getOrgNext(e);
-//        }
-//        else if (!(t.getDestPrev(e)).rightOf(p)) {
-//            e = t.getDestPrev(e);
-//        }
-//        else {
-//            return e;
-//        }
-//    }
-//}
-//
-////TODO: Zie return by value of return by pointer
-//Vertex walkNN(const Vertex &p, const std::vector<Triangle> &triangleList) {
-//
-//    Edge closestEdge = getClosestEdge(p, triangleList);
-//
-//    Vertex org = closestEdge.getOrigin();
-//    Vertex dest = closestEdge.getDestination();
-//
-//    if (org.distsq(p) < dest.distsq(p)) {
-//        return org;
-//    }
-//    else {
-//        return dest;
-//    }
-//}
-
 #endif

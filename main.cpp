@@ -7,6 +7,7 @@
 #include <array>
 #include <chrono>
 #include <fstream>
+#include <Windows.h> //windows header heeft sleep in milliseconds, usleep werkt niet op windows
 
 #include <SFML/Graphics.hpp>
 #include <CGAL/Simple_cartesian.h>
@@ -20,8 +21,6 @@ typedef std::chrono::high_resolution_clock	Clock;
 typedef Clock::duration						Duration;
 
 #include "delaunay_cgal.h"
-
-
 
 /*
 * !! X-AS STAAT VERTICAAL EN Y-AS STAAT HORIZONTAAL !!
@@ -44,8 +43,6 @@ long int toMicroseconds(Duration dt){
 
 int main()
 {
-
-
     //srand is PSEUD-RNG, moet als argument een bepaald getal meekrijgen (zelfde getal zal altijd zelfde 'random' getallen genereren 
     //--> door argument time(NULL) mee te geven wordt verzekerd dat het telkens andere getallen zijn)
 	srand (time(NULL));
@@ -75,7 +72,8 @@ int main()
 			file << numberPoints << ", " << BWTime << ", " << hilbertTime << ", " << xSortTime << std::endl;
 			std::cout << numberPoints << ", " << BWTime << ", " << hilbertTime << ", " << xSortTime << std::endl;
 
-			usleep(4e6);
+			Sleep(4000);
+            //usleep(4e6);
 		}
 	}
 	file.close();
@@ -88,22 +86,10 @@ int main()
 //	triangulator.triangulate(points);
 //	std::cout << "sucess\n";
 
-
-
-//    points.push_back(Point(100.0, 200.0, 0));
-//    points.push_back(Point(200.0, 400.0, 0));
-//    points.push_back(Point(300.0, 100.0, 0));
-//    points.push_back(Point(400.0, 500.0, 0));
-//    points.push_back(Point(500.0, 300.0, 0));
-
-//
 //
 //	auto int_ns = std::chrono::duration_cast<std::chrono::nanoseconds>(triangulator.hilbert(points));
 //
 //    std::cout << "Triangulation took " << ((double) int_ns.count()) / 1e0 << "ns" << std::endl;
-
-	
-
 
 	return 0;
 }

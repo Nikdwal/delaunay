@@ -1,3 +1,7 @@
+/*
+*   De geometry.h header file bevat methodes die bewerkingen uitvoeren op verschillende combinaties 
+*   van vertices, edges en triangles.
+*/
 #ifndef GEOMETRY_H_
 #define GEOMETRY_H_
 
@@ -10,9 +14,10 @@ typedef CGAL::Simple_cartesian<Real>		Kernel;
 typedef Kernel::Point_3						Point;
 typedef CGAL::Polyhedron_3<Kernel>			PH;
 
-
-
-
+/*
+*   Neemt een triangle en een punt v en kijkt na of de omschreven cirkel rond triangle het punt v bevat.
+*   Als dit zo is geeft deze methode true terug, anders false.
+*/
 bool circumCircleContains(PH::Facet_const_handle triangle, const Point &v) {
 	// TODO: kon dit ook niet met een determinant? Zie liu/snoeyink
 	PH::Halfedge_const_handle e = triangle->halfedge();
@@ -33,11 +38,15 @@ bool circumCircleContains(PH::Facet_const_handle triangle, const Point &v) {
 	Real dist_sq = ((v.x() - circum_x) * (v.x() - circum_x)) + ((v.y() - circum_y) * (v.y() - circum_y));
 
 	// debug
-//	if(dist_sq <= circum_radius_sq) std::cout << sqrtf(circum_radius_sq) - sqrtf(dist_sq) << "\n";
+    //if(dist_sq <= circum_radius_sq) std::cout << sqrtf(circum_radius_sq) - sqrtf(dist_sq) << "\n";
 
 	return dist_sq <= circum_radius_sq;
 }
 
+/*
+*   Neemt een punt p en een halfedge e en kijkt na of p rechts van e ligt door gebruik te maken van de determinant.
+*   Als p rechts van e ligt dan geeft deze methode true terug, anders false.
+*/
 //geeft true als punt p rechts van edge e ligt
 bool rightOf(PH::Halfedge_const_handle e, const PH::Point &p) {
 	const Point &v = e->opposite()->vertex()->point();
@@ -46,16 +55,24 @@ bool rightOf(PH::Halfedge_const_handle e, const PH::Point &p) {
     return det > 0;
 }
 
+/*
+*   Neemt een halfedge, berekent de edge die counterclockwise ligt vanaf de origin van die halfedge.
+*   Hiervoor wordt een circulator gebruikt die voorzien wordt door de CGAL library.
+*   Geeft de gevonden halfedge terug.
+*/
 PH::Halfedge_handle origNext(PH::Halfedge_handle e){
 	PH::Halfedge_around_vertex_circulator iter = e->opposite()->vertex_begin();
 	return prev(iter)->opposite();
 }
 
+/*
+*   Neemt een halfedge, berekent de edge die clockwise ligt vanaf de destination van die halfedge.
+*   Hiervoor wordt een circulator gebruikt die voorzien wordt door de CGAL library.
+*   Geeft de gevonden halfedge terug.
+*/
 PH::Halfedge_handle destPrev(PH::Halfedge_handle e){
 	PH::Halfedge_around_vertex_circulator iter = e->vertex_begin();
 	return next(iter);
 }
-
-
 
 #endif /* GEOMETRY_H_ */
