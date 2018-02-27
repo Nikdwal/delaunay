@@ -82,6 +82,10 @@ class Delaunay_CGAL
 	    	std::cout << "=====================================\n";
 		}
 		
+		int getTotalPathLength(){
+			return totalPathLength;
+		}
+
 		std::string eStr(PH::Halfedge_handle e){
 			std::string s = "";
 			s += "Start: (";
@@ -220,6 +224,7 @@ class Delaunay_CGAL
 
 		void initialize(std::vector<Point> &points){
 			triangulation.clear();
+			totalPathLength = 0;
 
 			// Determinate the super triangle
 			Real minX = points[0].x();
@@ -272,6 +277,10 @@ class Delaunay_CGAL
 
 			// vind de slechte driehoeken
 			PH::Halfedge_handle gs_edge = adjEdge(p, startEdge);
+			// TODO: dit is enkel voor het experiment voor het meten van de padlengte.
+			// Dit verdubbelt de uitvoeringstijd
+			totalPathLength += pathLength(p, startEdge);
+
 			std::vector<PH::Facet_handle> discoveredTriangles;
 			std::list<PH::Facet_handle> queue;
 			queue.push_back(gs_edge->facet());
@@ -401,6 +410,7 @@ class Delaunay_CGAL
 		Polyhedron triangulation;
 		PH::Vertex_handle superVertices[3];
 		Real midx, midy;
+		int totalPathLength;
 
 };
 
