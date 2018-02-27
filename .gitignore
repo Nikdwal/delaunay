@@ -8,6 +8,8 @@ peda-session-delaunay.txt
 .cproject
 .project
 .settings
+*.sln
+*.vcxproj*
 
 Makefile
 CMakeCache.txt

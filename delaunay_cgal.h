@@ -4,6 +4,7 @@
 #include "geometry.h"
 #include "NearestSearch.h"
 
+#include <Windows.h>
 #include <iostream>
 #include <vector>
 #include <algorithm>
@@ -23,6 +24,9 @@ class Delaunay_CGAL
 {
 	public:
 
+        /*
+        *   kijkt na of de Euler-formule klopt voor de triangulatie.
+        */
 		bool eulerCheck(){
 			int V = triangulation.size_of_vertices();
 			int E = triangulation.size_of_halfedges() / 2;
@@ -30,6 +34,10 @@ class Delaunay_CGAL
 			return V - E + F == 2;
 		}
 
+        /*
+        *   Kijkt na of de variabele triangulation wel degelijk een triangulatie is door de Euler-formule te controleren
+        *   en te controleren of elke facet in de triangulatie wel een driehoek is.
+        */
 		bool isTriangulation(){
 			if (!eulerCheck())
 				return false;
@@ -45,6 +53,10 @@ class Delaunay_CGAL
 			return true;
 		}
 
+        /*
+        *   Kijkt na of de triangulatie delaunay is door te kijken of de omschreven cirkel rond elke driehoek in de 
+        *   triangulatie leeg is.
+        */
 		bool isDelaunay(){
 			if (!isTriangulation())
 				return false;
@@ -68,6 +80,9 @@ class Delaunay_CGAL
 			return true;
 		}
 
+        /*
+        *   Kijkt na of de triangulatie nog controlepunten bevat.
+        */
 		bool containsControlPoints(){
 			for(PH::Vertex_handle v = triangulation.vertices_begin(); v != triangulation.vertices_end(); v++){
 				if(v->point().z() != 0) return true;
@@ -75,6 +90,9 @@ class Delaunay_CGAL
 			return false;
 		}
 
+        /*
+        *   Geeft de triangulatie weer als een string van vertices en edges.
+        */
 		void print(){
 			for(PH::Edge_iterator e = triangulation.edges_begin(); e != triangulation.edges_end(); e++){
 				std::cout << eStr(e);
@@ -85,7 +103,9 @@ class Delaunay_CGAL
 		int getTotalPathLength(){
 			return totalPathLength;
 		}
-
+        /*
+        *   Print edges af.
+        */
 		std::string eStr(PH::Halfedge_handle e){
 			std::string s = "";
 			s += "Start: (";
@@ -104,6 +124,9 @@ class Delaunay_CGAL
 			return s;
 		}
 
+        /*
+        *   Print driehoeken af als combinatie van edges.
+        */
 		std::string triStr(PH::Facet_handle t){
 			std::string s = "";
 			PH::Halfedge_handle e = t->halfedge();
@@ -113,11 +136,24 @@ class Delaunay_CGAL
 			}
 		}
 
+        /*
+        *   Neemt vector van punten en geeft de delaunay triangulatie van deze punten terug.
+        *   De manier waarop de triangulatie gevormd wordt staat op de eerste lijn code van deze methode.
+        *       --> stdBowyerWatson = algoritme waarin de Bowyer-Watson procedure uitgevoerd wordt
+        *       --> hilbert = triangulatie wordt gevonden door eerst de punten te sorteren langs een hilbertcurve
+        *       --> xSort = punten worden gesorteerd volgens coordinaat langs x-as
+        *       --> xSortRightMost = neemt meest rechtse punt langs de x-as en begint daarin triangulatie
+        */
 		PH triangulate(std::vector<Point> &points){
 			stdBowyerWatson(points);
 			return triangulation;
 		}
 
+        /*
+        *   Neemt vector van punten en vormt de delaunay triangulatie van deze punten door middel van het 
+        *   Bowyer-Watson algoritme.
+        *   Geeft de tijd terug (in nanoseconden) dat het algoritme nodig had om de triangulatie te berekenen.
+        */
 		Clock::duration stdBowyerWatson(std::vector<Point> &points){
 			Clock::time_point tik = Clock::now();
 
@@ -141,6 +177,11 @@ class Delaunay_CGAL
 			return tak - tik;
 		}
 
+        /*
+        *   Neemt vector van punten en gaat deze punten sorteren volgens een hilbertcurve en roept vervolgens iteratief
+        *   de addVertex()-methode op om de triangulatie te berekenen.
+        *   Geeft de tijd terug (in nanoseconden) dat het algoritme nodig had om de triangulatie te berekenen.
+        */
 		Clock::duration hilbert(std::vector<Point> &points){
 
 			// Zuiver overhead omwille van conversie Point2<->Point3. Dit moet je niet timen, want dit
@@ -168,6 +209,11 @@ class Delaunay_CGAL
 			return (tak - tik) + (tek - tok);
 		}
 
+        /*
+        *   Neemt vector van punten en gaat deze punten sorteren volgens de x-as en roept vervolgens iteratief
+        *   de addVertex()-methode op om de triangulatie te berekenen.
+        *   Geeft de tijd terug (in nanoseconden) dat het algoritme nodig had om de triangulatie te berekenen.
+        */
 		Clock::duration xSort(std::vector<Point> &points){
 			struct comparator {
 			  bool operator() (Point &v, Point &w) { return (v.x() < w.x());}
@@ -189,8 +235,12 @@ class Delaunay_CGAL
 			return tak - tik;
 		}
 
-		// Zoals de gewone ordening met stijgende x, maar neem als startpunt
-		// van de wandeling het meest rechtse punt van de supertriangle
+        /*
+        *   Neemt vector van punten en gaat deze punten sorteren volgens de x-as en roept vervolgens iteratief
+        *   de addVertex()-methode, beginnende van het punt dat het meest rechts ligt van de initiële supertriangle,
+        *   om de triangulatie te berekenen. 
+        *   Geeft de tijd terug (in nanoseconden) dat het algoritme nodig had om de triangulatie te berekenen.
+        */
 		Clock::duration xSortRightmost(std::vector<Point> &points){
 			struct comparator {
 			  bool operator() (Point &v, Point &w) { return (v.x() < w.x());}
@@ -222,7 +272,12 @@ class Delaunay_CGAL
 			return tak - tik;
 		}
 
-		void initialize(std::vector<Point> &points){
+		/*  
+        *   Neemt een vector van punten en initialiseert deze punten door de intitiële supertriangle te berekenen
+        *   en deze toe te voegen aan de supervertices vector
+        */
+        //TODO: WAAROM NIET GEWOON SUPERVERTICES VECTOR TERUGGEVEN IPV PRIVATE TE VERKLAREN?
+        void initialize(std::vector<Point> &points){
 			triangulation.clear();
 			totalPathLength = 0;
 
@@ -242,7 +297,7 @@ class Delaunay_CGAL
 			
 			Real dx = maxX - minX;
 			Real dy = maxY - minY;
-			Real deltaMax = std::max(dx, dy);
+			Real deltaMax = max(dx, dy);
 			midx = (minX + maxX) / 2.f;
 			midy = (minY + maxY) / 2.f;
 
@@ -268,10 +323,14 @@ class Delaunay_CGAL
 
 		}
 
+        /*
+        *   Voegt een vertex toe aan de triangulatie en berekent de nieuwe triangulatie.
+        *   Geeft Vertex_handle terug, dit is gelijkend aan een pointer.
+        */
+        //TODO: MAAK APARTE METHODES VAN ELKE STAP DIE NODIG IS OM EEN VERTEX TOE TE VOEGEN AAN DE TRIANGULATIE!!
 		PH::Vertex_handle addVertex(Point &p, PH::Halfedge_handle startEdge)
 		{
 			// blijkbaar is het trager als je van polygon en discoveredTriangles sets maakt.
-
 			std::vector<PH::Halfedge_handle> polygon;
 			std::vector<PH::Facet_handle> badTriangles;
 
@@ -359,6 +418,7 @@ class Delaunay_CGAL
 //				v = Point(v.x(), v.y(), 10);
 				auxEdges.push_back(auxEdge);
 			}
+
 			// Verwijder nu effectief alle halfbogen die weg moeten
 			for(int i = 0; i < badTriangles.size(); i++)
 				triangulation.erase_facet(badTriangles[i]->halfedge());
@@ -384,11 +444,14 @@ class Delaunay_CGAL
 			return addedVertex;
 		}
 
+        /*
+        *   Verwijderd de supertriangle en alle driehoeken die met de hoekpunten hiervan verbonden zijn.
+        *   Geeft de triangulatie terug.
+        */
 		PH &finish(){
 			// TODO: verwijder<< " Hilbert: " << hilbertTime
 			return triangulation;
 
-			// verwijder de super-triangle en alle driehoeken die met de hoekpunten hiervan verbonden zijn
 			for(int i = 0; i < 3; i++){
 				PH::Vertex_handle v = superVertices[i];
 				// we weten dat v op de rand ligt

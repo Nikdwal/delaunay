@@ -1,7 +1,6 @@
 #ifndef H_DELAUNAY
 #define H_DELAUNAY
 
-#include "vector2.h"
 #include "edge.h"
 #include "triangle.h"
 #include "Vertex.h"
