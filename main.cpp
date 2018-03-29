@@ -7,7 +7,7 @@
 #include <array>
 #include <chrono>
 #include <fstream>
-#include <Windows.h> //windows header heeft sleep in milliseconds, usleep werkt niet op windows
+//#include <Windows.h> //windows header heeft sleep in milliseconds, usleep werkt niet op windows
 
 #include <SFML/Graphics.hpp>
 #include <CGAL/Simple_cartesian.h>
@@ -50,10 +50,11 @@ int main()
     //srand is PSEUD-RNG, moet als argument een bepaald getal meekrijgen (zelfde getal zal altijd zelfde 'random' getallen genereren 
     //--> door argument time(NULL) mee te geven wordt verzekerd dat het telkens andere getallen zijn)
 	srand (time(NULL));
-	
+
 
 //	std::cout << "Generating " << numberPoints << " random points" << std::endl;
 
+	// TOTALE REKENTIJD
 //	std::ofstream file;
 //	file.open ("metingen.csv");
 //	int numReruns = 7;
@@ -81,8 +82,41 @@ int main()
 //	}
 //	file.close();
 
+	// LENGTE VAN DE WANDELING
+//	std::ofstream file;
+//	file.open ("searchtimes.csv");
+//	int numReruns = 7;
+//	int step = 50s00;
+//	file << "points, bw, hilbert, xsort" << std::endl;
+//	for(int numberPoints = step; numberPoints <= 30*step; numberPoints += step){
+//		for(int k = 0; k < numReruns; k++){
+//			Delaunay_CGAL triangulator; // om een of andere reden blijft bw hangen als je niet steeds een nieuwe triangulator maakt
+//			std::vector<Point> points, hilbertCopy, xSortCopy;
+//			for(int j = 0; j < numberPoints; j++) {
+//				points.push_back(Point(RandomReal(0, 1), RandomReal(0, 1), 0)); //push_back voegt punt toe aan einde lijst
+//			}
+//			// zorg dat de triangulator geen structuur aanbrengt in de invoer van de volgende
+//			hilbertCopy = points;
+//			xSortCopy   = points;
+//			triangulator.stdBowyerWatson(points);
+//			int BWPath      = triangulator.getTotalPathLength() / numberPoints;
+//			triangulator.hilbert(hilbertCopy);
+//			int hilbertPath = triangulator.getTotalPathLength() / numberPoints;
+//			triangulator.xSort(xSortCopy);
+//			int xSortPath   = triangulator.getTotalPathLength() / numberPoints;
+//
+//			file << numberPoints << ", " << BWPath << ", " << hilbertPath << ", " << xSortPath << std::endl;
+//			std::cout << numberPoints << ", " << BWPath << ", " << hilbertPath << ", " << xSortPath << std::endl;
+//
+////			Sleep(4000);
+//            //usleep(4e6);
+//		}
+//	}
+//	file.close();
+
+//	 AANTAL VERWIJDERDE DRIEHOEKEN
 	std::ofstream file;
-	file.open ("searchtimes.csv");
+	file.open ("deletedTriangles.csv");
 	int numReruns = 7;
 	int step = 5000;
 	file << "points, bw, hilbert, xsort" << std::endl;
@@ -97,16 +131,16 @@ int main()
 			hilbertCopy = points;
 			xSortCopy   = points;
 			triangulator.stdBowyerWatson(points);
-			int BWPath      = triangulator.getTotalPathLength() / numberPoints;
+			int BWPath      = triangulator.getNumDeletedTriangles() / numberPoints;
 			triangulator.hilbert(hilbertCopy);
-			int hilbertPath = triangulator.getTotalPathLength() / numberPoints;
+			int hilbertPath = triangulator.getNumDeletedTriangles() / numberPoints;
 			triangulator.xSort(xSortCopy);
-			int xSortPath   = triangulator.getTotalPathLength() / numberPoints;
+			int xSortPath   = triangulator.getNumDeletedTriangles() / numberPoints;
 
 			file << numberPoints << ", " << BWPath << ", " << hilbertPath << ", " << xSortPath << std::endl;
 			std::cout << numberPoints << ", " << BWPath << ", " << hilbertPath << ", " << xSortPath << std::endl;
 
-			Sleep(4000);
+//			Sleep(4000);
             //usleep(4e6);
 		}
 	}

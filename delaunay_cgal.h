@@ -4,7 +4,7 @@
 #include "geometry.h"
 #include "NearestSearch.h"
 
-#include <Windows.h>
+//#include <Windows.h>
 #include <iostream>
 #include <vector>
 #include <algorithm>
@@ -103,6 +103,11 @@ class Delaunay_CGAL
 		int getTotalPathLength(){
 			return totalPathLength;
 		}
+
+		int getNumDeletedTriangles(){
+			return numDeletedTriangles;
+		}
+
         /*
         *   Print edges af.
         */
@@ -237,7 +242,7 @@ class Delaunay_CGAL
 
         /*
         *   Neemt vector van punten en gaat deze punten sorteren volgens de x-as en roept vervolgens iteratief
-        *   de addVertex()-methode, beginnende van het punt dat het meest rechts ligt van de initiële supertriangle,
+        *   de addVertex()-methode, beginnende van het punt dat het meest rechts ligt van de initiï¿½le supertriangle,
         *   om de triangulatie te berekenen. 
         *   Geeft de tijd terug (in nanoseconden) dat het algoritme nodig had om de triangulatie te berekenen.
         */
@@ -273,13 +278,14 @@ class Delaunay_CGAL
 		}
 
 		/*  
-        *   Neemt een vector van punten en initialiseert deze punten door de intitiële supertriangle te berekenen
+        *   Neemt een vector van punten en initialiseert deze punten door de intitiï¿½le supertriangle te berekenen
         *   en deze toe te voegen aan de supervertices vector
         */
         //TODO: WAAROM NIET GEWOON SUPERVERTICES VECTOR TERUGGEVEN IPV PRIVATE TE VERKLAREN?
         void initialize(std::vector<Point> &points){
 			triangulation.clear();
 			totalPathLength = 0;
+			numDeletedTriangles = 0;
 
 			// Determinate the super triangle
 			Real minX = points[0].x();
@@ -297,7 +303,7 @@ class Delaunay_CGAL
 			
 			Real dx = maxX - minX;
 			Real dy = maxY - minY;
-			Real deltaMax = max(dx, dy);
+			Real deltaMax = std::max(dx, dy);
 			midx = (minX + maxX) / 2.f;
 			midy = (minY + maxY) / 2.f;
 
@@ -338,7 +344,7 @@ class Delaunay_CGAL
 			PH::Halfedge_handle gs_edge = adjEdge(p, startEdge);
 			// TODO: dit is enkel voor het experiment voor het meten van de padlengte.
 			// Dit verdubbelt de uitvoeringstijd
-			totalPathLength += pathLength(p, startEdge);
+//			totalPathLength += pathLength(p, startEdge);
 
 			std::vector<PH::Facet_handle> discoveredTriangles;
 			std::list<PH::Facet_handle> queue;
@@ -365,6 +371,8 @@ class Delaunay_CGAL
 					}
 				}
 			}
+
+			numDeletedTriangles += badTriangles.size();
 
 			// construeer polygon
 			for(int i = 0; i < badTriangles.size(); i++){
@@ -474,6 +482,7 @@ class Delaunay_CGAL
 		PH::Vertex_handle superVertices[3];
 		Real midx, midy;
 		int totalPathLength;
+		int numDeletedTriangles;
 
 };
 
