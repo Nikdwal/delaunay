@@ -11,6 +11,7 @@
 #include <CGAL/Simple_cartesian.h>
 #include <CGAL/Polyhedron_3.h>
 #include <CGAL/hilbert_sort.h>
+#include <numeric>
 
 typedef double								Real;
 typedef CGAL::Simple_cartesian<Real>		Kernel;
@@ -19,6 +20,8 @@ typedef Kernel::Point_2						Point2;
 typedef CGAL::Polyhedron_3<Kernel>			Polyhedron;
 typedef Polyhedron							PH;
 typedef std::chrono::high_resolution_clock	Clock;
+
+using namespace std;
 
 class Delaunay_CGAL
 {
@@ -106,6 +109,21 @@ class Delaunay_CGAL
 
 		int getNumDeletedTriangles(){
 			return numDeletedTriangles;
+		}
+
+		// Het gemiddelde over alle vertices van {cosSmallestAngle(vertex), op het moment dat een vertex wordt toegevoed}.
+		Real getAvgCosSmallestAngle(){
+			return std::accumulate(cosineSmallestAngle.begin(), cosineSmallestAngle.end(), 0) / triangulation.size_of_vertices();
+		}
+
+		// {cosSmallestAngle(vertex), op het moment dat een vertex wordt toegevoed}
+		vector<Real> getCosSmallestAngle(){
+			return cosineSmallestAngle;
+		}
+
+		// {cosMaxMin(vertex), op het moment dat een vertex wordt toegevoed}
+		vector<Real> getCosMaxMin(){
+			return cosineMaxMin;
 		}
 
         /*
@@ -284,8 +302,11 @@ class Delaunay_CGAL
         //TODO: WAAROM NIET GEWOON SUPERVERTICES VECTOR TERUGGEVEN IPV PRIVATE TE VERKLAREN?
         void initialize(std::vector<Point> &points){
 			triangulation.clear();
+			// zet enkele te meten statistieken op nul
 			totalPathLength = 0;
 			numDeletedTriangles = 0;
+			cosineSmallestAngle.clear();
+			cosineMaxMin.clear();
 
 			// Determinate the super triangle
 			Real minX = points[0].x();
@@ -372,6 +393,7 @@ class Delaunay_CGAL
 				}
 			}
 
+			// update de statistieken
 			numDeletedTriangles += badTriangles.size();
 
 			// construeer polygon
@@ -449,6 +471,10 @@ class Delaunay_CGAL
 			for(int i = 0; i < auxEdges.size(); i++)
 				triangulation.erase_facet(auxEdges[i]);
 
+			// update de statistieken
+			cosineSmallestAngle.push_back(cosSmallestAngle(addedVertex));
+			cosineMaxMin.push_back(cosMaxMin(addedVertex));
+
 			return addedVertex;
 		}
 
@@ -483,6 +509,9 @@ class Delaunay_CGAL
 		Real midx, midy;
 		int totalPathLength;
 		int numDeletedTriangles;
+		// {cosSmallestAngle(vertex), op het moment dat een vertex wordt toegevoed | voor elk toegevoegd punt}.
+		vector<Real> cosineSmallestAngle;
+		vector<Real> cosineMaxMin;
 
 };
 

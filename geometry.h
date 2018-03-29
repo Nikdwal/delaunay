@@ -100,5 +100,42 @@ Real cosSmallestAngle(PH::Facet_handle triangle){
 	return (bsq + csq - asq) / (2 * sqrt(bsq * csq));
 }
 
+/**
+ * De cosinus van de kleinste hoek, gemeten over alle driehoeken die een hoekpunt hebben in het gegeven punt
+ */
+Real cosSmallestAngle(PH::Vertex_handle vertex){
+	// We weten dat de kleinste hoek ten hoogste 60 graden is, dus de cosinus ligt tussen 0.5 en 1.
+	// De kleinste hoek heeft de grootste cosinus.
+	Real cos = 0;
+	Real cos2;
+	PH::Halfedge_around_vertex_circulator circulator = vertex->vertex_begin();
+	int i = 0;
+	for(PH::Halfedge_handle edge = circulator; i++ < vertex->degree(); edge++){
+		cos2 = cosSmallestAngle(edge->facet());
+		if(cos2 > cos)
+			cos = cos2;
+	}
+	return cos;
+}
+
+/**
+ * De cosinus van het maximum over alle aangrenzende driehoeken van de kleinste hoek van die driehoek.
+ * Deze hoek zegt of er in een toegevoegd punt ook "goede" Delaunay-driehoeken zijn.
+ */
+Real cosMaxMin(PH::Vertex_handle vertex){
+	// We weten dat de kleinste hoek ten hoogste 60 graden is, dus de cosinus ligt tussen 0.5 en 1.
+	// De grootste hoek heeft de kleinste cosinus.
+	Real cos = 1;
+	Real cos2;
+	PH::Halfedge_around_vertex_circulator circulator = vertex->vertex_begin();
+	int i = 0;
+	for(PH::Halfedge_handle edge = circulator; i++ < vertex->degree(); edge++){
+		cos2 = cosSmallestAngle(edge->facet());
+		if(cos2 < cos)
+			cos = cos2;
+	}
+	return cos;
+}
+
 
 #endif /* GEOMETRY_H_ */
