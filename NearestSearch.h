@@ -72,6 +72,26 @@ PH::Halfedge_handle adjEdge(const Point &p, PH::Halfedge_handle startEdge){
 	}
 }
 
+int pathLength(const Point &p, PH::Halfedge_handle startEdge){
+	PH::Halfedge_handle e = startEdge;
+	int count = 0;
+	while(true){
+		if(p == e->vertex()->point() || p == e->opposite()->vertex()->point())
+			return count;
+		else if(rightOf(e,p))
+			e = e->opposite();
+		else if(!rightOf(origNext(e), p)){
+			e = origNext(e);
+			count ++;
+		}
+		else if(!rightOf(destPrev(e), p)){
+			e = destPrev(e);
+			count++;
+		}
+		else
+			return count;
+	}
+}
 /*
 *   Neemt een punt p en een triangulatie triangulation en berekent halfedge waarop p ligt
 *   of de halfedge die p links van zich heeft liggen door de methode adjEdge(Point p, Halfedge e)

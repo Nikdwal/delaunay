@@ -8,11 +8,14 @@
 #include <iostream>
 #include <CGAL/Simple_cartesian.h>
 #include <CGAL/Polyhedron_3.h>
+#include <CGAL/squared_distance_3.h>
 
 typedef double								Real;
 typedef CGAL::Simple_cartesian<Real>		Kernel;
 typedef Kernel::Point_3						Point;
 typedef CGAL::Polyhedron_3<Kernel>			PH;
+
+using namespace CGAL;
 
 /*
 *   Neemt een triangle en een punt v en kijkt na of de omschreven cirkel rond triangle het punt v bevat.
@@ -74,5 +77,65 @@ PH::Halfedge_handle destPrev(PH::Halfedge_handle e){
 	PH::Halfedge_around_vertex_circulator iter = e->vertex_begin();
 	return next(iter);
 }
+
+/**
+ * Cosinus van de kleinste hoek van een driehoek
+ */
+Real cosSmallestAngle(PH::Facet_handle triangle){
+	PH::Halfedge_handle e = triangle->halfedge();
+	Point A = e->vertex()->point();
+	Point B = e->next()->vertex()->point();
+	Point C = e->prev()->vertex()->point();
+	Real dists[3] = {squared_distance(A,B), squared_distance(B,C), squared_distance(A, C)};
+
+	// de kleinste hoek staat tegenover de kortste zijde
+	int argmin = 0;
+	for(int i = 1; i < 3; i++)
+		if (dists[i] < dists[argmin]) argmin = i;
+
+	Real asq = dists[argmin];
+	Real bsq = dists[(argmin+1)%3];
+	Real csq = dists[(argmin+2)%3];
+	// cosinusregel
+	return (bsq + csq - asq) / (2 * sqrt(bsq * csq));
+}
+
+/**
+ * De cosinus van de kleinste hoek, gemeten over alle driehoeken die een hoekpunt hebben in het gegeven punt
+ */
+Real cosSmallestAngle(PH::Vertex_handle vertex){
+	// We weten dat de kleinste hoek ten hoogste 60 graden is, dus de cosinus ligt tussen 0.5 en 1.
+	// De kleinste hoek heeft de grootste cosinus.
+	Real cos = 0;
+	Real cos2;
+	PH::Halfedge_around_vertex_circulator circulator = vertex->vertex_begin();
+	int i = 0;
+	for(PH::Halfedge_handle edge = circulator; i++ < vertex->degree(); edge++){
+		cos2 = cosSmallestAngle(edge->facet());
+		if(cos2 > cos)
+			cos = cos2;
+	}
+	return cos;
+}
+
+/**
+ * De cosinus van het maximum over alle aangrenzende driehoeken van de kleinste hoek van die driehoek.
+ * Deze hoek zegt of er in een toegevoegd punt ook "goede" Delaunay-driehoeken zijn.
+ */
+Real cosMaxMin(PH::Vertex_handle vertex){
+	// We weten dat de kleinste hoek ten hoogste 60 graden is, dus de cosinus ligt tussen 0.5 en 1.
+	// De grootste hoek heeft de kleinste cosinus.
+	Real cos = 1;
+	Real cos2;
+	PH::Halfedge_around_vertex_circulator circulator = vertex->vertex_begin();
+	int i = 0;
+	for(PH::Halfedge_handle edge = circulator; i++ < vertex->degree(); edge++){
+		cos2 = cosSmallestAngle(edge->facet());
+		if(cos2 < cos)
+			cos = cos2;
+	}
+	return cos;
+}
+
 
 #endif /* GEOMETRY_H_ */

@@ -36,7 +36,7 @@ curve_bw  = lambda x: nsqrtn(x, *popt_bw)
 curve_hil = lambda x: n(x, *popt_hil)
 curve_sor = lambda x: nsqrtn(x, *popt_sor)
 
-plt.figure(figsize=(12,8))
+plt.figure(figsize=(7,5))
 
 plt.plot(x, bw, "r+", label="Bowyer-Watson")
 # plt.plot(x, curve_bw(x), "k")

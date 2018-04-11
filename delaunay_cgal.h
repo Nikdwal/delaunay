@@ -4,13 +4,14 @@
 #include "geometry.h"
 #include "NearestSearch.h"
 
-#include <Windows.h>
+//#include <Windows.h>
 #include <iostream>
 #include <vector>
 #include <algorithm>
 #include <CGAL/Simple_cartesian.h>
 #include <CGAL/Polyhedron_3.h>
 #include <CGAL/hilbert_sort.h>
+#include <numeric>
 
 typedef double								Real;
 typedef CGAL::Simple_cartesian<Real>		Kernel;
@@ -19,6 +20,8 @@ typedef Kernel::Point_2						Point2;
 typedef CGAL::Polyhedron_3<Kernel>			Polyhedron;
 typedef Polyhedron							PH;
 typedef std::chrono::high_resolution_clock	Clock;
+
+using namespace std;
 
 class Delaunay_CGAL
 {
@@ -100,6 +103,29 @@ class Delaunay_CGAL
 	    	std::cout << "=====================================\n";
 		}
 		
+		int getTotalPathLength(){
+			return totalPathLength;
+		}
+
+		int getNumDeletedTriangles(){
+			return numDeletedTriangles;
+		}
+
+		// Het gemiddelde over alle vertices van {cosSmallestAngle(vertex), op het moment dat een vertex wordt toegevoed}.
+		Real getAvgCosSmallestAngle(){
+			return std::accumulate(cosineSmallestAngle.begin(), cosineSmallestAngle.end(), 0) / triangulation.size_of_vertices();
+		}
+
+		// {cosSmallestAngle(vertex), op het moment dat een vertex wordt toegevoed}
+		vector<Real> getCosSmallestAngle(){
+			return cosineSmallestAngle;
+		}
+
+		// {cosMaxMin(vertex), op het moment dat een vertex wordt toegevoed}
+		vector<Real> getCosMaxMin(){
+			return cosineMaxMin;
+		}
+
         /*
         *   Print edges af.
         */
@@ -234,7 +260,7 @@ class Delaunay_CGAL
 
         /*
         *   Neemt vector van punten en gaat deze punten sorteren volgens de x-as en roept vervolgens iteratief
-        *   de addVertex()-methode, beginnende van het punt dat het meest rechts ligt van de initiële supertriangle,
+        *   de addVertex()-methode, beginnende van het punt dat het meest rechts ligt van de initiï¿½le supertriangle,
         *   om de triangulatie te berekenen. 
         *   Geeft de tijd terug (in nanoseconden) dat het algoritme nodig had om de triangulatie te berekenen.
         */
@@ -270,12 +296,17 @@ class Delaunay_CGAL
 		}
 
 		/*  
-        *   Neemt een vector van punten en initialiseert deze punten door de intitiële supertriangle te berekenen
+        *   Neemt een vector van punten en initialiseert deze punten door de intitiï¿½le supertriangle te berekenen
         *   en deze toe te voegen aan de supervertices vector
         */
         //TODO: WAAROM NIET GEWOON SUPERVERTICES VECTOR TERUGGEVEN IPV PRIVATE TE VERKLAREN?
         void initialize(std::vector<Point> &points){
 			triangulation.clear();
+			// zet enkele te meten statistieken op nul
+			totalPathLength = 0;
+			numDeletedTriangles = 0;
+			cosineSmallestAngle.clear();
+			cosineMaxMin.clear();
 
 			// Determinate the super triangle
 			Real minX = points[0].x();
@@ -293,7 +324,7 @@ class Delaunay_CGAL
 			
 			Real dx = maxX - minX;
 			Real dy = maxY - minY;
-			Real deltaMax = max(dx, dy);
+			Real deltaMax = std::max(dx, dy);
 			midx = (minX + maxX) / 2.f;
 			midy = (minY + maxY) / 2.f;
 
@@ -332,6 +363,10 @@ class Delaunay_CGAL
 
 			// vind de slechte driehoeken
 			PH::Halfedge_handle gs_edge = adjEdge(p, startEdge);
+			// TODO: dit is enkel voor het experiment voor het meten van de padlengte.
+			// Dit verdubbelt de uitvoeringstijd
+//			totalPathLength += pathLength(p, startEdge);
+
 			std::vector<PH::Facet_handle> discoveredTriangles;
 			std::list<PH::Facet_handle> queue;
 			queue.push_back(gs_edge->facet());
@@ -357,6 +392,9 @@ class Delaunay_CGAL
 					}
 				}
 			}
+
+			// update de statistieken
+			numDeletedTriangles += badTriangles.size();
 
 			// construeer polygon
 			for(int i = 0; i < badTriangles.size(); i++){
@@ -433,6 +471,10 @@ class Delaunay_CGAL
 			for(int i = 0; i < auxEdges.size(); i++)
 				triangulation.erase_facet(auxEdges[i]);
 
+			// update de statistieken
+			cosineSmallestAngle.push_back(cosSmallestAngle(addedVertex));
+			cosineMaxMin.push_back(cosMaxMin(addedVertex));
+
 			return addedVertex;
 		}
 
@@ -464,6 +506,11 @@ class Delaunay_CGAL
 		Polyhedron triangulation;
 		PH::Vertex_handle superVertices[3];
 		Real midx, midy;
+		int totalPathLength;
+		int numDeletedTriangles;
+		// {cosSmallestAngle(vertex), op het moment dat een vertex wordt toegevoed | voor elk toegevoegd punt}.
+		vector<Real> cosineSmallestAngle;
+		vector<Real> cosineMaxMin;
 
 };
 
