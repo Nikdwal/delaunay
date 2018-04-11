@@ -1,9 +1,6 @@
 #ifndef H_DELAUNAY
 #define H_DELAUNAY
 
-#include "edge.h"
-#include "triangle.h"
-#include "Vertex.h"
 #include "NearestSearch.h"
 
 #include <vector>

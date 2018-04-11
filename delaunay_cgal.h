@@ -442,7 +442,6 @@ class Delaunay_CGAL
         */
 		PH &finish(){
 			// TODO: verwijder<< " Hilbert: " << hilbertTime
-			return triangulation;
 
 			for(int i = 0; i < 3; i++){
 				PH::Vertex_handle v = superVertices[i];
@@ -454,10 +453,10 @@ class Delaunay_CGAL
 					triangulation.erase_facet(e++);
 			}
 
-//			std::cout << "=====EINDRESULTAAT=====================\n";
-//			print();
-//			if (isDelaunay())
-//				std::cout << "Deze is delaunay.\n";
+			std::cout << "=====EINDRESULTAAT=====================\n";
+			print();
+			if (isDelaunay())
+				std::cout << "Deze is delaunay.\n";
 			return triangulation;
 		}
 
