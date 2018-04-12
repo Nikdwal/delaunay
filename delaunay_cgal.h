@@ -232,6 +232,43 @@ class Delaunay_CGAL
 			return (tak - tik) + (tek - tok);
 		}
 
+		Clock::duration hilbert2(std::vector<Point> &points){
+			// Zuiver overhead omwille van conversie Point2<->Point3. Dit moet je niet timen, want dit
+			// komt gewoon door het gebruik van de libraries
+			std::vector<Point2> points2FstHalf;
+			int cutoffPoint = points.size() / 5;
+			for(int i = 0; i < cutoffPoint; i++)
+				points2FstHalf.push_back(Point2(points[i].x(), points[i].y()));
+
+			Clock::time_point tik = Clock::now();
+			CGAL::hilbert_sort(points2FstHalf.begin(), points2FstHalf.end());
+			Clock::time_point tak = Clock::now();
+
+			std::vector<Point2> points2SndHalf;
+			for(int i = cutoffPoint; i < points.size(); i++)
+				points2SndHalf.push_back(Point2(points[i].x(), points[i].y()));
+
+			Clock::time_point tik2 = Clock::now();
+			CGAL::hilbert_sort(points2SndHalf.begin(), points2SndHalf.end());
+			Clock::time_point tak2 = Clock::now();
+
+			//std::vector<Point> points3;
+			for(int i = 0; i < points2FstHalf.size(); i++)
+				points[i] = Point(points2FstHalf[i].x(), points2FstHalf[i].y(), 0);
+			for(int i = 0; i < points2SndHalf.size(); i++)
+				points[points.size() - i - 1] = Point(points2SndHalf[i].x(), points2SndHalf[i].y(), 0);
+
+			Clock::time_point tok = Clock::now();
+			initialize(points);
+			PH::Halfedge_handle startEdge = triangulation.halfedges_begin();
+			for(auto p = begin(points); p != end(points); p++)
+				startEdge = addVertex(*p, startEdge)->halfedge();
+
+			finish();
+			Clock::time_point tek = Clock::now();
+			return (tak2 - tik2) + (tak - tik) + (tek - tok);
+		}
+
         /*
         *   Neemt vector van punten en gaat deze punten sorteren volgens de x-as en roept vervolgens iteratief
         *   de addVertex()-methode op om de triangulatie te berekenen.

@@ -74,50 +74,17 @@ int main()
 //			long int BWTime      = toMicroseconds(triangulator.stdBowyerWatson(points));
 //			long int hilbertTime = toMicroseconds(triangulator.hilbert(hilbertCopy));
 //			long int xSortTime   = toMicroseconds(triangulator.xSort(xSortCopy));
-//
 //			file << numberPoints << ", " << BWTime << ", " << hilbertTime << ", " << xSortTime << std::endl;
 //			std::cout << numberPoints << ", " << BWTime << ", " << hilbertTime << ", " << xSortTime << std::endl;
 //
-//			usleep(4e6);
+//			//usleep(4e6);
 //		}
 //	}
 //	file.close();
-
-	// LENGTE VAN DE WANDELING
+//
+//	// LENGTE VAN DE WANDELING
 //	std::ofstream file;
 //	file.open ("searchtimes.csv");
-//	int numReruns = 7;
-//	int step = 50s00;
-//	file << "points, bw, hilbert, xsort" << std::endl;
-//	for(int numberPoints = step; numberPoints <= 30*step; numberPoints += step){
-//		for(int k = 0; k < numReruns; k++){
-//			Delaunay_CGAL triangulator; // om een of andere reden blijft bw hangen als je niet steeds een nieuwe triangulator maakt
-//			std::vector<Point> points, hilbertCopy, xSortCopy;
-//			for(int j = 0; j < numberPoints; j++) {
-//				points.push_back(Point(RandomReal(0, 1), RandomReal(0, 1), 0)); //push_back voegt punt toe aan einde lijst
-//			}
-//			// zorg dat de triangulator geen structuur aanbrengt in de invoer van de volgende
-//			hilbertCopy = points;
-//			xSortCopy   = points;
-//			triangulator.stdBowyerWatson(points);
-//			int BWPath      = triangulator.getTotalPathLength() / numberPoints;
-//			triangulator.hilbert(hilbertCopy);
-//			int hilbertPath = triangulator.getTotalPathLength() / numberPoints;
-//			triangulator.xSort(xSortCopy);
-//			int xSortPath   = triangulator.getTotalPathLength() / numberPoints;
-//
-//			file << numberPoints << ", " << BWPath << ", " << hilbertPath << ", " << xSortPath << std::endl;
-//			std::cout << numberPoints << ", " << BWPath << ", " << hilbertPath << ", " << xSortPath << std::endl;
-//
-////			Sleep(4000);
-//            //usleep(4e6);
-//		}
-//	}
-//	file.close();
-
-//	 AANTAL VERWIJDERDE DRIEHOEKEN
-//	std::ofstream file;
-//	file.open ("deletedTriangles.csv");
 //	int numReruns = 7;
 //	int step = 5000;
 //	file << "points, bw, hilbert, xsort" << std::endl;
@@ -132,11 +99,11 @@ int main()
 //			hilbertCopy = points;
 //			xSortCopy   = points;
 //			triangulator.stdBowyerWatson(points);
-//			int BWPath      = triangulator.getNumDeletedTriangles() / numberPoints;
+//			int BWPath      = 0;//triangulator.getTotalPathLength() / numberPoints;
 //			triangulator.hilbert(hilbertCopy);
-//			int hilbertPath = triangulator.getNumDeletedTriangles() / numberPoints;
-//			triangulator.xSort(xSortCopy);
-//			int xSortPath   = triangulator.getNumDeletedTriangles() / numberPoints;
+//			int hilbertPath = triangulator.getTotalPathLength();// / numberPoints;
+//			triangulator.hilbert2(xSortCopy); //TODO: terugzetten naar xsort
+//			int xSortPath   = triangulator.getTotalPathLength();// / numberPoints;
 //
 //			file << numberPoints << ", " << BWPath << ", " << hilbertPath << ", " << xSortPath << std::endl;
 //			std::cout << numberPoints << ", " << BWPath << ", " << hilbertPath << ", " << xSortPath << std::endl;
@@ -146,6 +113,38 @@ int main()
 //		}
 //	}
 //	file.close();
+//
+	// AANTAL VERWIJDERDE DRIEHOEKEN
+	std::ofstream file;
+	file.open("deletedTriangles.csv");
+	int numReruns = 1;//7;
+	int step = 5000;
+	file << "points, bw, hilbert, xsort" << std::endl;
+	for(int numberPoints = step; numberPoints <= 30*step; numberPoints += step){
+		for(int k = 0; k < numReruns; k++){
+			Delaunay_CGAL triangulator; // om een of andere reden blijft bw hangen als je niet steeds een nieuwe triangulator maakt
+			std::vector<Point> points, hilbertCopy, xSortCopy;
+			for(int j = 0; j < numberPoints; j++) {
+				points.push_back(Point(RandomReal(0, 1), RandomReal(0, 1), 0)); //push_back voegt punt toe aan einde lijst
+			}
+			// zorg dat de triangulator geen structuur aanbrengt in de invoer van de volgende
+			hilbertCopy = points;
+			xSortCopy   = points;
+//			triangulator.stdBowyerWatson(points);
+			int BWPath      = triangulator.getNumDeletedTriangles();// / numberPoints;
+//			triangulator.hilbert(hilbertCopy);
+			int hilbertPath = triangulator.getNumDeletedTriangles();// / numberPoints;
+			triangulator.hilbert2(xSortCopy); // TODO: xsort terugzetten
+			int xSortPath   = triangulator.getNumDeletedTriangles();// / numberPoints;
+
+			file << numberPoints << ", " << BWPath << ", " << hilbertPath << ", " << xSortPath << std::endl;
+			std::cout << numberPoints << ", " << BWPath << ", " << hilbertPath << ", " << xSortPath << std::endl;
+
+//			Sleep(4000);
+            //usleep(4e6);
+		}
+	}
+	file.close();
 
 //	// METING KLEINSTE HOEK
 //	std::ofstream file;
@@ -179,16 +178,16 @@ int main()
 //	}
 //	file.close();
 
-	int numberPoints = 50000;
-	Delaunay_CGAL triangulator; // om een of andere reden blijft bw hangen als je niet steeds een nieuwe triangulator maakt
-	std::vector<Point> points, hilbertCopy, xSortCopy;
-	for(int j = 0; j < numberPoints; j++) {
-		points.push_back(Point(RandomReal(0, 1), RandomReal(0, 1), 0)); //push_back voegt punt toe aan einde lijst
-	}
-	triangulator.xSort(points);
-	vector<Real> angle = triangulator.getCosMaxMin();
-	for(int i = 0; i < angle.size(); i++)
-		std::cout << acos(angle[i]) * 180 / 3.141592653589793238 << std::endl;
+//	int numberPoints = 50000;
+//	Delaunay_CGAL triangulator; // om een of andere reden blijft bw hangen als je niet steeds een nieuwe triangulator maakt
+//	std::vector<Point> points, hilbertCopy, xSortCopy;
+//	for(int j = 0; j < numberPoints; j++) {
+//		points.push_back(Point(RandomReal(0, 1), RandomReal(0, 1), 0)); //push_back voegt punt toe aan einde lijst
+//	}
+//	triangulator.xSort(points);
+//	vector<Real> angle = triangulator.getCosMaxMin();
+//	for(int i = 0; i < angle.size(); i++)
+//		std::cout << acos(angle[i]) * 180 / 3.141592653589793238 << std::endl;
 
 
 
