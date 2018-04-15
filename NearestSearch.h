@@ -57,24 +57,37 @@ std::string ps(Point &p){
 *   Geeft de halfedge terug waarop p ligt of die p links van zich heeft liggen.
 */
 PH::Halfedge_handle adjEdge(const Point &p, PH::Halfedge_handle startEdge, int &counter){
+	// enkel bijgehouden voor experiment
+	Real dist = length(startEdge);
+
 	PH::Halfedge_handle e = startEdge;
-	int count = 0;
+//	int count = counter;
+//	std::cout << "===============\n";
 	while(true){
 		if(p == e->vertex()->point() || p == e->opposite()->vertex()->point())
-			return e;
+			break;
 		else if(rightOf(e,p))
 			e = e->opposite();
 		else if(!rightOf(origNext(e), p)){
 			e = origNext(e);
 			counter ++;
+//			if(length(e) < sqrt(2.0))//superedges niet meerekenen
+//				dist += length(e);
+//			std::cout << e->vertex()->point().x() << ", " << e->vertex()->point().y() << std::endl;
 		}
 		else if(!rightOf(destPrev(e), p)){
 			e = destPrev(e);
 			counter ++;
+//			if(length(e) < sqrt(2.0))//superedges niet meerekenen
+//				dist += length(e);
+//			std::cout << e->vertex()->point().x() << ", " << e->vertex()->point().y() << std::endl;
 		}
 		else
-			return e;
+			break;
 	}
+//	std::cout << counter - count << std::endl;
+//	std::cout << dist << std::endl;
+	return e;
 }
 /*
 *   Neemt een punt p en een triangulatie triangulation en berekent halfedge waarop p ligt

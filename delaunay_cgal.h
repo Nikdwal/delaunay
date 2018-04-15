@@ -112,8 +112,12 @@ class Delaunay_CGAL
 		}
 
 		// Het gemiddelde over alle vertices van {cosSmallestAngle(vertex), op het moment dat een vertex wordt toegevoed}.
-		Real getAvgCosSmallestAngle(){
-			return std::accumulate(cosineSmallestAngle.begin(), cosineSmallestAngle.end(), 0) / triangulation.size_of_vertices();
+		Real getAvgSmallestAngle(){
+			Real sum = 0;
+			for(int i = 0; i < cosineSmallestAngle.size(); i++)
+				sum += acos(cosineSmallestAngle[i]);
+			return sum / cosineSmallestAngle.size();
+			//return std::accumulate(cosineSmallestAngle.begin(), cosineSmallestAngle.end(), 0) / triangulation.size_of_vertices();
 		}
 
 		// {cosSmallestAngle(vertex), op het moment dat een vertex wordt toegevoed}
@@ -235,6 +239,37 @@ class Delaunay_CGAL
 			return (tak - tik) + (tek - tok);
 		}
 
+		Clock::duration hilbertControlPts(std::vector<Point> &points, Real percentageControlPoints){
+			int cutoffPoint = percentageControlPoints * points.size();
+
+			std::vector<Point2> points2;
+			for(auto p = begin(points); p != end(points); p++)
+				points2.push_back(Point2(p->x(), p->y()));
+
+			Clock::time_point tik = Clock::now();
+			CGAL::hilbert_sort(points2.begin(), points2.begin() + cutoffPoint);
+			CGAL::hilbert_sort(points2.begin() + cutoffPoint, points2.end());
+			Clock::time_point tak = Clock::now();
+
+			preprocessingTime = tak - tik;
+
+			// zorg dat het het einde van de eerste hilbertcurve overgaat in het begin van de tweede
+			std::reverse(points2.begin(), points2.begin() + cutoffPoint);
+
+			for(int i = 0; i < points.size(); i++)
+				points[i] = Point(points2[i].x(), points2[i].y(), 0);
+
+			Clock::time_point tok = Clock::now();
+			initialize(points);
+			PH::Halfedge_handle startEdge = triangulation.halfedges_begin();
+			for(auto p = begin(points); p != end(points); p++)
+				startEdge = addVertex(*p, startEdge)->halfedge();
+
+			finish();
+			Clock::time_point tek = Clock::now();
+			return (tak - tik) + (tek - tok);
+		}
+
         /*
         *   Neemt vector van punten en gaat deze punten sorteren volgens de x-as en roept vervolgens iteratief
         *   de addVertex()-methode op om de triangulatie te berekenen.
@@ -313,6 +348,7 @@ class Delaunay_CGAL
 			cosineMaxMin.clear();
 			searchTime = Duration::zero();
 			updateTime = Duration::zero();
+			finishTime = Duration::zero();
 
 			Clock::time_point tik = Clock::now();
 
@@ -495,7 +531,7 @@ class Delaunay_CGAL
         *   Geeft de triangulatie terug.
         */
 		PH &finish(){
-			// TODO: verwijder<< " Hilbert: " << hilbertTime
+			Clock::time_point tik = Clock::now();
 
 			for(int i = 0; i < 3; i++){
 				PH::Vertex_handle v = superVertices[i];
@@ -507,6 +543,8 @@ class Delaunay_CGAL
 					triangulation.erase_facet(e++);
 			}
 
+			finishTime = Clock::now() - tik;
+
 //			std::cout << "=====EINDRESULTAAT=====================\n";
 //			print();
 //			if (isDelaunay())
@@ -517,6 +555,7 @@ class Delaunay_CGAL
 		Clock::duration preprocessingTime;
 		Clock::duration searchTime;
 		Clock::duration updateTime;
+		Clock::duration finishTime;
 
 	private:
 		Polyhedron triangulation;

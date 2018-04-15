@@ -137,5 +137,9 @@ Real cosMaxMin(PH::Vertex_handle vertex){
 	return cos;
 }
 
+Real length(PH::Halfedge_handle e){
+	return sqrt(CGAL::squared_distance(e->vertex()->point(), e->opposite()->vertex()->point()));
+}
+
 
 #endif /* GEOMETRY_H_ */
