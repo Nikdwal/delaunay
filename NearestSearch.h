@@ -56,40 +56,24 @@ std::string ps(Point &p){
 *   de reeds bepaalde delaunay triangulatie.
 *   Geeft de halfedge terug waarop p ligt of die p links van zich heeft liggen.
 */
-PH::Halfedge_handle adjEdge(const Point &p, PH::Halfedge_handle startEdge){
-	PH::Halfedge_handle e = startEdge;
-	while(true){
-		if(p == e->vertex()->point() || p == e->opposite()->vertex()->point())
-			return e;
-		else if(rightOf(e,p))
-			e = e->opposite();
-		else if(!rightOf(origNext(e), p))
-			e = origNext(e);
-		else if(!rightOf(destPrev(e), p))
-			e = destPrev(e);
-		else
-			return e;
-	}
-}
-
-int pathLength(const Point &p, PH::Halfedge_handle startEdge){
+PH::Halfedge_handle adjEdge(const Point &p, PH::Halfedge_handle startEdge, int &counter){
 	PH::Halfedge_handle e = startEdge;
 	int count = 0;
 	while(true){
 		if(p == e->vertex()->point() || p == e->opposite()->vertex()->point())
-			return count;
+			return e;
 		else if(rightOf(e,p))
 			e = e->opposite();
 		else if(!rightOf(origNext(e), p)){
 			e = origNext(e);
-			count ++;
+			counter ++;
 		}
 		else if(!rightOf(destPrev(e), p)){
 			e = destPrev(e);
-			count++;
+			counter ++;
 		}
 		else
-			return count;
+			return e;
 	}
 }
 /*
@@ -97,8 +81,8 @@ int pathLength(const Point &p, PH::Halfedge_handle startEdge){
 *   of de halfedge die p links van zich heeft liggen door de methode adjEdge(Point p, Halfedge e)
 *   op te roepen.
 */
-PH::Halfedge_handle adjEdge(const Point &p, PH &triangulation) {
+PH::Halfedge_handle adjEdge(const Point &p, PH &triangulation, int &counter) {
     // TODO: dit kun je nog wijzigen, bv. naar het middelste punt
-    return adjEdge(p, triangulation.halfedges_begin());
+    return adjEdge(p, triangulation.halfedges_begin(), counter);
 }
 #endif

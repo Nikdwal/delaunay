@@ -178,6 +178,7 @@ class Delaunay_CGAL
         *   Geeft de tijd terug (in nanoseconden) dat het algoritme nodig had om de triangulatie te berekenen.
         */
 		Clock::duration stdBowyerWatson(std::vector<Point> &points){
+			preprocessingTime = Duration::zero();
 			Clock::time_point tik = Clock::now();
 
 			initialize(points);
@@ -217,6 +218,8 @@ class Delaunay_CGAL
 			CGAL::hilbert_sort(points2.begin(), points2.end());
 			Clock::time_point tak = Clock::now();
 
+			preprocessingTime = tak - tik;
+
 			//std::vector<Point> points3;
 			for(int i = 0; i < points.size(); i++)
 				points[i] = Point(points2[i].x(), points2[i].y(), 0);
@@ -244,8 +247,9 @@ class Delaunay_CGAL
 
 
 			Clock::time_point tik = Clock::now();
-
 			std::sort(points.begin(), points.end(), compare);
+			Clock::time_point tak = Clock::now();
+			preprocessingTime = tak - tik;
 
 			initialize(points);
 			PH::Halfedge_handle startEdge = triangulation.halfedges_begin();
@@ -254,8 +258,8 @@ class Delaunay_CGAL
 
 			finish();
 
-			Clock::time_point tak = Clock::now();
-			return tak - tik;
+			Clock::time_point tok = Clock::now();
+			return tok - tik;
 		}
 
         /*
@@ -307,6 +311,10 @@ class Delaunay_CGAL
 			numDeletedTriangles = 0;
 			cosineSmallestAngle.clear();
 			cosineMaxMin.clear();
+			searchTime = Duration::zero();
+			updateTime = Duration::zero();
+
+			Clock::time_point tik = Clock::now();
 
 			// Determinate the super triangle
 			Real minX = points[0].x();
@@ -348,6 +356,8 @@ class Delaunay_CGAL
 			if(rightOf(internalEdge, internalEdge->next()->vertex()->point()))
 				triangulation.inside_out();
 
+			preprocessingTime += Clock::now() - tik;
+
 		}
 
         /*
@@ -362,10 +372,10 @@ class Delaunay_CGAL
 			std::vector<PH::Facet_handle> badTriangles;
 
 			// vind de slechte driehoeken
-			PH::Halfedge_handle gs_edge = adjEdge(p, startEdge);
-			// TODO: dit is enkel voor het experiment voor het meten van de padlengte.
-			// Dit verdubbelt de uitvoeringstijd
-//			totalPathLength += pathLength(p, startEdge);
+			Clock::time_point tik = Clock::now();
+			PH::Halfedge_handle gs_edge = adjEdge(p, startEdge, totalPathLength);
+			Clock::time_point tak = Clock::now();
+			searchTime += tak - tik;
 
 			std::vector<PH::Facet_handle> discoveredTriangles;
 			std::list<PH::Facet_handle> queue;
@@ -471,6 +481,8 @@ class Delaunay_CGAL
 			for(int i = 0; i < auxEdges.size(); i++)
 				triangulation.erase_facet(auxEdges[i]);
 
+			updateTime += Clock::now() - tak;
+
 			// update de statistieken
 			cosineSmallestAngle.push_back(cosSmallestAngle(addedVertex));
 			cosineMaxMin.push_back(cosMaxMin(addedVertex));
@@ -495,12 +507,16 @@ class Delaunay_CGAL
 					triangulation.erase_facet(e++);
 			}
 
-			std::cout << "=====EINDRESULTAAT=====================\n";
-			print();
-			if (isDelaunay())
-				std::cout << "Deze is delaunay.\n";
+//			std::cout << "=====EINDRESULTAAT=====================\n";
+//			print();
+//			if (isDelaunay())
+//				std::cout << "Deze is delaunay.\n";
 			return triangulation;
 		}
+
+		Clock::duration preprocessingTime;
+		Clock::duration searchTime;
+		Clock::duration updateTime;
 
 	private:
 		Polyhedron triangulation;
